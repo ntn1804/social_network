@@ -1,8 +1,6 @@
 package com.example.socialnetwork.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -12,11 +10,16 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Builder
+@Table(name = "otp")
 public class Otp extends BaseEntity{
 
+    @Column
     private int code;
+
+    @Column
     private LocalDateTime expired;
+
+    @Column
     private boolean isDeleted;
 
     @ManyToOne

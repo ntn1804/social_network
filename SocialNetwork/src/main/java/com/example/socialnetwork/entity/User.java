@@ -5,7 +5,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Date;
 import java.util.List;
@@ -14,96 +16,34 @@ import java.util.List;
 @Table(name = "user")
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class User extends BaseEntity {
 
-    @Column(name = "username")
+    @Column
     private String username;
 
-    @Column(name = "username")
+    @Column
     private String password;
 
-    @Column(name = "username")
+    @Column
     private String email;
 
-    @Column(name = "username")
+    @Column
     private String role;
 
-    @Column(name = "username")
+    @Column
     private String fullName;
 
-    @Column(name = "username")
+    @Column
     private Date dateOfBirth;
 
-    @Column(name = "username")
+    @Column
     private String job;
 
-    @Column(name = "place")
+    @Column
     private String place;
 
     @OneToMany(mappedBy = "user")
     private List<Otp> otpList;
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public Date getDateOfBirth() {
-        return dateOfBirth;
-    }
-
-    public void setDateOfBirth(Date dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
-    }
-
-    public String getJob() {
-        return job;
-    }
-
-    public void setJob(String job) {
-        this.job = job;
-    }
-
-    public String getLivingPlace() {
-        return place;
-    }
-
-    public void setLivingPlace(String livingPlace) {
-        this.place = livingPlace;
-    }
 }
