@@ -1,9 +1,6 @@
 package com.example.socialnetwork.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -46,4 +43,19 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "user")
     private List<Otp> otpList;
+
+    @OneToMany(mappedBy = "user")
+    private List<Post> postList;
+
+    @OneToMany(mappedBy = "user")
+    private List<React> reactList;
+
+    @OneToMany(mappedBy = "user")
+    private List<Comment> commentList;
+
+    @OneToMany(mappedBy = "user")
+    private List<Friend> userList;
+
+    @OneToMany(mappedBy = "friend")
+    private List<Friend> friendList;
 }

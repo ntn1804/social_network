@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserAPI {
 
     @GetMapping("/test")
-    public String testAPI(){
-        return "success";
+    public String testAPI() {
+        return "hihi";
     }
 }
