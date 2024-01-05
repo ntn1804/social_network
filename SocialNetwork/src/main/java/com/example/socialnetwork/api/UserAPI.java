@@ -1,13 +1,23 @@
 package com.example.socialnetwork.api;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.example.socialnetwork.dto.UserDTO;
+import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.repository.UserRepository;
+import com.example.socialnetwork.service.IUserService;
+import com.example.socialnetwork.service.impl.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/api/v1/user")
 public class UserAPI {
 
-    @GetMapping("/test")
-    public String testAPI() {
-        return "hihi";
+    @Autowired
+    private IUserService userService;
+    @PostMapping("/register")
+    public String registration(@RequestBody UserDTO userDTO) {
+        return userService.registration(userDTO);
     }
+
+
 }

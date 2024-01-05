@@ -17,13 +17,13 @@ import java.util.List;
 @Setter
 public class User extends BaseEntity {
 
-    @Column
+    @Column(nullable = false, unique = true)
     private String username;
 
-    @Column
+    @Column(nullable = false)
     private String password;
 
-    @Column
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column
