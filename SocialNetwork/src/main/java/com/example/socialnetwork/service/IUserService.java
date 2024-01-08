@@ -6,5 +6,5 @@ import com.example.socialnetwork.entity.User;
 public interface IUserService {
     UserDTO saveUser(UserDTO userDTO);
 
-    String registration(UserDTO userDTO);
+    String registerUser(UserDTO userDTO);
 }

@@ -2,16 +2,21 @@ package com.example.socialnetwork.converter;
 
 import com.example.socialnetwork.dto.UserDTO;
 import com.example.socialnetwork.entity.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UserConverter {
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     public User toEntity(UserDTO dto){
         User entity = new User();
         entity.setEmail(dto.getEmail());
         entity.setUsername(dto.getUsername());
-        entity.setPassword(dto.getPassword());
+        entity.setPassword(passwordEncoder.encode(dto.getPassword()));
         entity.setRole("user");
         return entity;
     }

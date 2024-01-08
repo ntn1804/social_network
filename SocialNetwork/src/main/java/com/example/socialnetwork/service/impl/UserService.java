@@ -7,7 +7,6 @@ import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.regex.Pattern;
 
@@ -29,7 +28,7 @@ public class UserService implements IUserService {
         return userConverter.toDto(user);
     }
 
-    public String registration( UserDTO userDTO) {
+    public String registerUser(UserDTO userDTO) {
         User existingUser = userRepository.findByEmailOrUsername(userDTO.getEmail(),userDTO.getUsername());
         if(userDTO.getUsername() != null && userDTO.getUsername().isEmpty()){
             return "Username can not be empty!";
@@ -39,7 +38,7 @@ public class UserService implements IUserService {
             return "Email is invalid!";
         }
         if(existingUser != null){
-            return "Email or Username have been registered!";
+            return "Email or Username has been registered!";
         } else {
             saveUser(userDTO);
         }
