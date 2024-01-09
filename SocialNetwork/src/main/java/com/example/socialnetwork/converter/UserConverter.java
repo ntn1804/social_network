@@ -17,7 +17,7 @@ public class UserConverter {
         entity.setEmail(dto.getEmail());
         entity.setUsername(dto.getUsername());
         entity.setPassword(passwordEncoder.encode(dto.getPassword()));
-        entity.setRole("user");
+        entity.setRole("USER");
         return entity;
     }
 

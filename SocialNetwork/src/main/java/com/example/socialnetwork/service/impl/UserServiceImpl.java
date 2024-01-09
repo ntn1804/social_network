@@ -4,14 +4,14 @@ import com.example.socialnetwork.converter.UserConverter;
 import com.example.socialnetwork.dto.UserDTO;
 import com.example.socialnetwork.entity.User;
 import com.example.socialnetwork.repository.UserRepository;
-import com.example.socialnetwork.service.IUserService;
+import com.example.socialnetwork.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Pattern;
 
 @Service
-public class UserService implements IUserService {
+public class UserServiceImpl implements UserService {
     private final static String regexMail = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
 
     @Autowired
