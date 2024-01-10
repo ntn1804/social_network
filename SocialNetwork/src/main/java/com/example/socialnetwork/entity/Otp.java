@@ -10,11 +10,15 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@Builder
 @Table(name = "otp")
 public class Otp extends BaseEntity{
 
     @Column
-    private int code;
+    private String username;
+
+    @Column
+    private String otpCode;
 
     @Column
     private LocalDateTime expired;

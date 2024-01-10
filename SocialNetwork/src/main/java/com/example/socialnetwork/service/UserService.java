@@ -1,9 +1,10 @@
 package com.example.socialnetwork.service;
 
-import com.example.socialnetwork.dto.UserDTO;
+import com.example.socialnetwork.dto.ForgotPasswordRequestDTO;
+import com.example.socialnetwork.dto.UserRequestDTO;
 
 public interface UserService {
-    UserDTO saveUser(UserDTO userDTO);
-
-    String registerUser(UserDTO userDTO);
+    UserRequestDTO saveUser(UserRequestDTO userRequestDTO);
+    String registerUser(UserRequestDTO userRequestDTO);
+    String forgotPassword(ForgotPasswordRequestDTO requestDTO);
 }
