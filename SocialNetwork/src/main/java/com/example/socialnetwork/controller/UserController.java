@@ -1,12 +1,11 @@
 package com.example.socialnetwork.controller;
 
-import com.example.socialnetwork.dto.ForgotPasswordRequestDTO;
-import com.example.socialnetwork.dto.LoginRequestDTO;
-import com.example.socialnetwork.dto.OtpValidationRequest;
-import com.example.socialnetwork.dto.UserRequestDTO;
+import com.example.socialnetwork.dto.*;
+import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.service.OtpService;
 import com.example.socialnetwork.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,7 +19,7 @@ public class UserController {
     private OtpService otpService;
 
     @PostMapping("/register")
-    public String registration(@RequestBody UserRequestDTO userRequestDTO) {
+    public ResponseEntity<Response> registration(@RequestBody UserRequestDTO userRequestDTO) {
         return userService.registerUser(userRequestDTO);
     }
 
@@ -38,4 +37,12 @@ public class UserController {
     public String forgotPassword(@RequestBody ForgotPasswordRequestDTO requestDTO){
         return userService.forgotPassword(requestDTO);
     }
+
+    @PutMapping("/reset-password")
+    public String resetPassword(@RequestBody ResetPasswordDTO requestDTO){
+        return userService.resetPassword(requestDTO);
+    }
+
+    @PostMapping
+    public ResponseEntity
 }

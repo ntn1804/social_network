@@ -3,7 +3,7 @@ package com.example.socialnetwork.service.impl;
 import com.example.socialnetwork.dto.LoginRequestDTO;
 import com.example.socialnetwork.dto.OtpValidationRequest;
 import com.example.socialnetwork.entity.Otp;
-import com.example.socialnetwork.repository.OtpRepository;
+import com.example.socialnetwork.repository.OtpRepo;
 import com.example.socialnetwork.service.JwtService;
 import com.example.socialnetwork.service.OtpService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ import java.util.Random;
 public class OtpServiceImpl implements OtpService {
 
     @Autowired
-    private OtpRepository otpRepository;
+    private OtpRepo otpRepo;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -42,12 +42,12 @@ public class OtpServiceImpl implements OtpService {
     }
 
     public String generateOtp(LoginRequestDTO loginRequestDTO){
-        Otp existingOtp = otpRepository.findByUsername(loginRequestDTO.getUsername());
+        Otp existingOtp = otpRepo.findByUsername(loginRequestDTO.getUsername());
         if (existingOtp != null){
-            otpRepository.delete(existingOtp);
+            otpRepo.delete(existingOtp);
         }
         String otp= new DecimalFormat("000000").format(new Random().nextInt(999999));
-        otpRepository.save(Otp.builder()
+        otpRepo.save(Otp.builder()
                         .username(loginRequestDTO.getUsername())
                         .otpCode(otp)
                         .expired(LocalDateTime.now().plusMinutes(5))
@@ -56,7 +56,7 @@ public class OtpServiceImpl implements OtpService {
     }
 
     public String validateOtp(OtpValidationRequest otpValidationRequest){
-        Otp otp = otpRepository.findByUsername(otpValidationRequest.getUsername());
+        Otp otp = otpRepo.findByUsername(otpValidationRequest.getUsername());
         if(otp == null){
             return "Login to get OTP";
         } else if (otp.getExpired().isBefore(LocalDateTime.now())) {
