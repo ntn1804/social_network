@@ -1,6 +1,6 @@
 package com.example.socialnetwork.converter;
 
-import com.example.socialnetwork.dto.UserRequestDTO;
+import com.example.socialnetwork.dto.request.UserRequestDTO;
 import com.example.socialnetwork.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;

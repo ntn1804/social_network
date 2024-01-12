@@ -1,7 +1,7 @@
 package com.example.socialnetwork.service.impl;
 
-import com.example.socialnetwork.dto.LoginRequestDTO;
-import com.example.socialnetwork.dto.OtpValidationRequest;
+import com.example.socialnetwork.dto.request.LoginRequestDTO;
+import com.example.socialnetwork.dto.request.OtpValidationRequest;
 import com.example.socialnetwork.entity.Otp;
 import com.example.socialnetwork.repository.OtpRepo;
 import com.example.socialnetwork.service.JwtService;

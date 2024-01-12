@@ -1,6 +1,6 @@
 package com.example.socialnetwork.controller;
 
-import com.example.socialnetwork.dto.*;
+import com.example.socialnetwork.dto.request.*;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.service.OtpService;
 import com.example.socialnetwork.service.UserService;
@@ -42,7 +42,4 @@ public class UserController {
     public String resetPassword(@RequestBody ResetPasswordDTO requestDTO){
         return userService.resetPassword(requestDTO);
     }
-
-    @PostMapping
-    public ResponseEntity
 }

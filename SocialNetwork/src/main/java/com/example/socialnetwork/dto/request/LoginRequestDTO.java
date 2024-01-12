@@ -1,4 +1,4 @@
-package com.example.socialnetwork.dto;
+package com.example.socialnetwork.dto.request;
 
 import lombok.*;
 

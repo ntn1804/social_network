@@ -1,4 +1,4 @@
-package com.example.socialnetwork.dto;
+package com.example.socialnetwork.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,8 +9,10 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResetPasswordDTO {
+public class UserRequestDTO {
+
+    private Long id;
     private String email;
-    private String token;
-    private String newPassword;
+    private String username;
+    private String password;
 }
