@@ -19,13 +19,13 @@ public class UserController {
     private OtpService otpService;
 
     @PostMapping("/register")
-    public ResponseEntity<Response> registration(@RequestBody UserRequestDTO userRequestDTO) {
-        return userService.registerUser(userRequestDTO);
+    public ResponseEntity<Response> registration(@RequestBody RegistrationRequestDTO requestDTO) {
+        return userService.registerUser(requestDTO);
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequestDTO loginRequestDTO) {
-        return otpService.sendOtp(loginRequestDTO);
+    public String login(@RequestBody LoginRequestDTO requestDTO) {
+        return otpService.sendOtp(requestDTO);
     }
 
     @PostMapping("/validateOtp")
@@ -41,5 +41,10 @@ public class UserController {
     @PutMapping("/reset-password")
     public String resetPassword(@RequestBody ResetPasswordDTO requestDTO){
         return userService.resetPassword(requestDTO);
+    }
+
+    @DeleteMapping("/remove-user")
+    public ResponseEntity<Response> removeUser(){
+        return userService.removeUser();
     }
 }

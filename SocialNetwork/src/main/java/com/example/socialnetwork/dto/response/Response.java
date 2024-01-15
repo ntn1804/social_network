@@ -12,5 +12,6 @@ import lombok.*;
 public class Response {
     private int statusCode;
     private String responseMessage;
-    private UserResponseDTO userInfo;
+    private UserInfoResponseDTO userInfo;
+    private RegistrationResponseDTO registrationResponse;
 }

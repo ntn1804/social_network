@@ -1,11 +1,7 @@
 package com.example.socialnetwork.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import lombok.*;
 import java.util.Date;
 import java.util.List;
 
@@ -15,6 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 public class User extends BaseEntity {
 
     @Column(nullable = false, unique = true)
@@ -28,6 +25,8 @@ public class User extends BaseEntity {
 
     @Column
     private String role;
+
+    private String realName;
 
     @Column
     private String fullName;

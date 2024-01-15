@@ -35,7 +35,7 @@ public class StorageServiceImpl implements StorageService {
         } catch (RuntimeException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Ko up dc" + file.getOriginalFilename());
+                    .body("fail to upload image: " + file.getOriginalFilename());
         }
 
     }

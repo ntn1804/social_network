@@ -1,11 +1,12 @@
 package com.example.socialnetwork.service.impl;
 
-import com.example.socialnetwork.converter.UserConverter;
+import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.dto.request.ForgotPasswordRequestDTO;
 import com.example.socialnetwork.dto.request.ResetPasswordDTO;
-import com.example.socialnetwork.dto.request.UserRequestDTO;
+import com.example.socialnetwork.dto.request.RegistrationRequestDTO;
+import com.example.socialnetwork.dto.response.RegistrationResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
-import com.example.socialnetwork.dto.response.UserResponseDTO;
+import com.example.socialnetwork.dto.response.UserInfoResponseDTO;
 import com.example.socialnetwork.entity.TokenResetPassword;
 import com.example.socialnetwork.entity.User;
 import com.example.socialnetwork.repository.ResetPasswordRepo;
@@ -13,20 +14,20 @@ import com.example.socialnetwork.repository.UserRepo;
 import com.example.socialnetwork.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Service
 public class UserServiceImpl implements UserService {
     private final static String regexMail = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
-
-    @Autowired
-    private UserConverter userConverter;
 
     @Autowired
     private UserRepo userRepo;
@@ -38,26 +39,29 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public UserRequestDTO saveUser(UserRequestDTO userRequestDTO) {
-        User user = new User();
-        user = userConverter.toEntity(userRequestDTO);
-        user = userRepo.save(user);
-        return userConverter.toDto(user);
+    public void saveUser(RegistrationRequestDTO requestDTO) {
+        User user = User.builder()
+                .email(requestDTO.getEmail())
+                .username(requestDTO.getUsername())
+                .password(passwordEncoder.encode(requestDTO.getPassword()))
+                .role("USER")
+                .build();
+        userRepo.save(user);
     }
 
-    public ResponseEntity<Response> registerUser(UserRequestDTO userRequestDTO) {
-        User existingUser = userRepo.findByEmailOrUsername(userRequestDTO.getEmail(), userRequestDTO.getUsername());
-        if (userRequestDTO.getUsername() != null && userRequestDTO.getUsername().isEmpty()) {
+    public ResponseEntity<Response> registerUser(RegistrationRequestDTO requestDTO) {
+        User existingUser = userRepo.findByEmailOrUsername(requestDTO.getEmail(), requestDTO.getUsername());
+        if (requestDTO.getUsername() != null && requestDTO.getUsername().isEmpty()) {
             return ResponseEntity.badRequest().body(Response.builder()
                             .statusCode(400)
                             .responseMessage("Username can not be empty")
                     .build());
-        } else if (userRequestDTO.getEmail() != null && userRequestDTO.getEmail().isEmpty()) {
+        } else if (requestDTO.getEmail() != null && requestDTO.getEmail().isEmpty()) {
             return ResponseEntity.badRequest().body(Response.builder()
                     .statusCode(400)
                     .responseMessage("Email can not be empty")
                     .build());
-        } else if (!patternEmailMatches(userRequestDTO.getEmail(), regexMail)) {
+        } else if (!patternEmailMatches(requestDTO.getEmail(), regexMail)) {
             return ResponseEntity.badRequest().body(Response.builder()
                     .statusCode(400)
                     .responseMessage("Email is invalid")
@@ -69,14 +73,14 @@ public class UserServiceImpl implements UserService {
                     .responseMessage("Email or Username has been registered")
                     .build());
         } else {
-            saveUser(userRequestDTO);
+            saveUser(requestDTO);
         }
         return ResponseEntity.ok(Response.builder()
                 .statusCode(200)
                 .responseMessage("Registered successfully")
-                .userInfo(UserResponseDTO.builder()
-                        .email(userRequestDTO.getEmail())
-                        .username(userRequestDTO.getUsername())
+                .registrationResponse(RegistrationResponseDTO.builder()
+                        .username(requestDTO.getUsername())
+                        .email(requestDTO.getEmail())
                         .build())
                 .build());
     }
@@ -129,5 +133,27 @@ public class UserServiceImpl implements UserService {
            }
         }
         return "Reset password successfully";
+    }
+
+    @Override
+    public ResponseEntity<Response> removeUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
+        Optional<User> listUser = userRepo.findByUsername(userDetails.getUsername());
+        if(listUser.isPresent()){
+            User user = listUser.get();
+            Long userId = user.getId();
+            userRepo.deleteById(userId);
+        } else {
+            return ResponseEntity.ok(Response.builder()
+                            .statusCode(400)
+                            .responseMessage("Removed user unsuccessfully")
+                    .build());
+        }
+
+        return ResponseEntity.ok(Response.builder()
+                .statusCode(200)
+                .responseMessage("Removed user successfully")
+                .build());
     }
 }
