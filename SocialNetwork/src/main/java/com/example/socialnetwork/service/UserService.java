@@ -10,6 +10,6 @@ public interface UserService {
     void saveUser(RegistrationRequestDTO requestDTO);
     ResponseEntity<Response> registerUser(RegistrationRequestDTO requestDTO);
     String forgotPassword(ForgotPasswordRequestDTO requestDTO);
-    String resetPassword(ResetPasswordDTO requestDTO);
+    String resetPassword(String tokenResetPassword, ResetPasswordDTO requestDTO);
     ResponseEntity<Response> removeUser();
 }

@@ -7,5 +7,5 @@ public interface OtpService {
 
     String sendOtp(LoginRequestDTO requestDTO);
 
-    String validateOtp(OtpValidationRequest otpValidationRequest);
+    String validateOtp(OtpValidationRequest requestDTO);
 }

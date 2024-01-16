@@ -7,6 +7,9 @@ import java.io.IOException;
 
 public interface StorageService {
     ResponseEntity<?> uploadImage(MultipartFile file) throws IOException;
-
     ResponseEntity<?> downloadImage(String fileName);
+
+    ResponseEntity<?> uploadImageToFileSystem(MultipartFile file) throws IOException;
+
+    ResponseEntity<?> downloadImageFromFileSystem(String fileName) throws IOException;
 }

@@ -6,7 +6,6 @@ import com.example.socialnetwork.dto.request.ResetPasswordDTO;
 import com.example.socialnetwork.dto.request.RegistrationRequestDTO;
 import com.example.socialnetwork.dto.response.RegistrationResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
-import com.example.socialnetwork.dto.response.UserInfoResponseDTO;
 import com.example.socialnetwork.entity.TokenResetPassword;
 import com.example.socialnetwork.entity.User;
 import com.example.socialnetwork.repository.ResetPasswordRepo;
@@ -102,7 +101,7 @@ public class UserServiceImpl implements UserService {
             return "Email does not exist";
         }
         String tokenResetPassword = generateToken(requestDTO);
-        return "http://localhost:8080/api/v1/user/reset-password\n" + tokenResetPassword;
+        return "http://localhost:8080/api/v1/user/reset-password/" + tokenResetPassword;
     }
 
     public String generateToken(ForgotPasswordRequestDTO requestDTO) {
@@ -121,8 +120,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String resetPassword(ResetPasswordDTO requestDTO) {
-        TokenResetPassword token = resetPasswordRepo.findByToken(requestDTO.getToken());
+    public String resetPassword(String tokenResetPassword, ResetPasswordDTO requestDTO) {
+        TokenResetPassword token = resetPasswordRepo.findByToken(tokenResetPassword);
         if(Objects.nonNull(token)){
            User user = userRepo.findByEmail(token.getEmail());
            if(Objects.nonNull(user)){

@@ -29,22 +29,23 @@ public class UserController {
     }
 
     @PostMapping("/validateOtp")
-    public String validateOtpAndGetToken(@RequestBody OtpValidationRequest otpValidationRequest) {
-        return otpService.validateOtp(otpValidationRequest);
+    public String validateOtpAndGetToken(@RequestBody OtpValidationRequest requestDTO) {
+        return otpService.validateOtp(requestDTO);
     }
 
     @PostMapping("/forgot-password")
-    public String forgotPassword(@RequestBody ForgotPasswordRequestDTO requestDTO){
+    public String forgotPassword(@RequestBody ForgotPasswordRequestDTO requestDTO) {
         return userService.forgotPassword(requestDTO);
     }
 
-    @PutMapping("/reset-password")
-    public String resetPassword(@RequestBody ResetPasswordDTO requestDTO){
-        return userService.resetPassword(requestDTO);
+    @GetMapping("/reset-password/{token}")
+    public String resetPassword(@PathVariable("token") String tokenResetPassword,
+                                @RequestBody ResetPasswordDTO requestDTO) {
+        return userService.resetPassword(tokenResetPassword, requestDTO);
     }
 
     @DeleteMapping("/remove-user")
-    public ResponseEntity<Response> removeUser(){
+    public ResponseEntity<Response> removeUser() {
         return userService.removeUser();
     }
 }

@@ -64,15 +64,15 @@ public class OtpServiceImpl implements OtpService {
         return otp;
     }
 
-    public String validateOtp(OtpValidationRequest otpValidationRequest){
-        Otp otp = otpRepo.findByUsername(otpValidationRequest.getUsername());
+    public String validateOtp(OtpValidationRequest requestDTO){
+        Otp otp = otpRepo.findByUsername(requestDTO.getUsername());
         if(otp == null){
             return "Login to get OTP";
         } else if (otp.getExpired().isBefore(LocalDateTime.now())) {
             return "Expired OTP";
-        } else if (!otp.getOtpCode().equals(otpValidationRequest.getOtpCode())){
+        } else if (!otp.getOtpCode().equals(requestDTO.getOtpCode())){
             return "Invalid OTP";
         }
-        return jwtService.generateToken(otpValidationRequest.getUsername());
+        return jwtService.generateToken(requestDTO.getUsername());
     }
 }

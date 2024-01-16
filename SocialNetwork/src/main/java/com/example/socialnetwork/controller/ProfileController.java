@@ -21,18 +21,28 @@ public class ProfileController {
     @Autowired
     private InfoService infoService;
 
-    @PostMapping(value = "/upload-image")
-    public ResponseEntity<?> uploadImage(@RequestParam("image")MultipartFile file) throws IOException {
-        return storageService.uploadImage(file);
-    }
-
-    @GetMapping("/{fileName}")
-    public ResponseEntity<?> downloadImage(@PathVariable String fileName){
-        return storageService.downloadImage(fileName);
-    }
+//    @PostMapping(value = "/upload-image")
+//    public ResponseEntity<?> uploadImage(@RequestParam("image")MultipartFile file) throws IOException {
+//        return storageService.uploadImage(file);
+//    }
+//
+//    @GetMapping("/{fileName}")
+//    public ResponseEntity<?> downloadImage(@PathVariable String fileName){
+//        return storageService.downloadImage(fileName);
+//    }
 
     @PostMapping("/update-info")
     public ResponseEntity<Response> updateInfo(@RequestBody UserInfoRequestDTO requestDTO){
         return infoService.updateInfo(requestDTO);
+    }
+
+    @PostMapping("/upload-image")
+    public ResponseEntity<?> uploadImageToFileSystem(@RequestParam("image") MultipartFile file) throws IOException {
+        return storageService.uploadImageToFileSystem(file);
+    }
+
+    @GetMapping("/{fileName}")
+    public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
+        return storageService.downloadImageFromFileSystem(fileName);
     }
 }
