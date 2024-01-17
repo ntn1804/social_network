@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/api/v1/post")
 public class PostController {
@@ -16,8 +18,17 @@ public class PostController {
     private PostService postService;
 
     @PostMapping("/create-post")
-    public ResponseEntity<Response> createPost(@RequestParam("post-image") MultipartFile file,
-                                               @RequestParam("post-text") PostRequestDTO requestDTO) {
+    public ResponseEntity<Response> createPost(@RequestParam(value = "post-image",
+                                                        required = false) MultipartFile file,
+                                               @RequestParam(value = "post-text",
+                                                       required = false) PostRequestDTO requestDTO) throws IOException {
         return postService.createPost(file, requestDTO);
+    }
+    @PostMapping("/edit-post")
+    public ResponseEntity<Response> editPost(@RequestParam(value = "post-image",
+            required = false) MultipartFile file,
+                                               @RequestParam(value = "post-text",
+                                                       required = false) PostRequestDTO requestDTO) throws IOException {
+        return postService.editPost(file, requestDTO);
     }
 }

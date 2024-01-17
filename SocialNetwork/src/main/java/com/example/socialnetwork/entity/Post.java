@@ -12,13 +12,20 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class Post extends BaseEntity{
+public class Post{
 
-    @Column
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) //auto increment
+    private Long id;
+
+    @Column(columnDefinition = "TEXT")
     private String text;
 
     @Column
     private String image;
+
+    @Column
+    private String filePath;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

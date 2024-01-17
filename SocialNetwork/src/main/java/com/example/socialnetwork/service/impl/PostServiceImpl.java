@@ -3,10 +3,8 @@ package com.example.socialnetwork.service.impl;
 import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.dto.request.PostRequestDTO;
 import com.example.socialnetwork.dto.response.Response;
-import com.example.socialnetwork.entity.FileData;
 import com.example.socialnetwork.entity.Post;
 import com.example.socialnetwork.entity.User;
-import com.example.socialnetwork.repository.FileDataRepo;
 import com.example.socialnetwork.repository.PostRepo;
 import com.example.socialnetwork.repository.UserRepo;
 import com.example.socialnetwork.service.PostService;
@@ -32,25 +30,35 @@ public class PostServiceImpl implements PostService {
     @Autowired
     private PostRepo postRepo;
 
-    @Autowired
-    private FileDataRepo fileDataRepo;
     @Override
-    public ResponseEntity<Response> createPost(MultipartFile file, PostRequestDTO requestDTO) {
+    public ResponseEntity<Response> createPost(MultipartFile file, PostRequestDTO requestDTO) throws IOException {
         // use jwt to get username.
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> user = userRepo.findByUsername(userDetails.getUsername());
 
-        Post post = Post.builder()
-                .text(requestDTO.getText())
-                .image(file.getOriginalFilename())
-                .user(user.get())
-                .build();
-        postRepo.save(post);
-        try {
-            savePostImageToFileSystem(file);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        String filePath = null;
+        if (file != null) {
+            filePath = folderPath + file.getOriginalFilename();
+        }
+
+        if (file == null && requestDTO == null){
+            return ResponseEntity.ok(Response.builder()
+                    .statusCode(400)
+                    .responseMessage("Post is empty")
+                    .build());
+        } else {
+            Post post = Post.builder()
+                    .text(requestDTO != null ? requestDTO.getText() : null)
+                    .user(user.orElse(null))
+                    .image(file != null ? file.getOriginalFilename() : null)
+                    .filePath(file != null ? filePath : null)
+                    .build();
+            postRepo.save(post);
+
+            if (file != null) {
+                file.transferTo(new File(filePath));
+            }
         }
         return ResponseEntity.ok(Response.builder()
                 .statusCode(200)
@@ -58,20 +66,13 @@ public class PostServiceImpl implements PostService {
                 .build());
     }
 
-    public void savePostImageToFileSystem(MultipartFile file) throws IOException {
-        String filePath = folderPath + file.getOriginalFilename();
-        FileData existingFileData = fileDataRepo.findByFilePath(filePath);
-        if (existingFileData != null){
-            fileDataRepo.delete(existingFileData);
-        }
+    @Override
+    public ResponseEntity<Response> editPost(MultipartFile file, PostRequestDTO requestDTO) {
 
-        FileData fileData = FileData.builder()
-                .name(file.getOriginalFilename())
-                .type(file.getContentType())
-                .filePath(filePath)
-                .build();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
+        Optional<User> user = userRepo.findByUsername(userDetails.getUsername());
 
-        fileDataRepo.save(fileData);
-        file.transferTo(new File(filePath));
+        return null;
     }
 }
