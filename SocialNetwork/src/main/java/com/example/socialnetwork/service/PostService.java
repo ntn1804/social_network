@@ -10,5 +10,5 @@ import java.io.IOException;
 public interface PostService {
     ResponseEntity<Response> createPost(MultipartFile file, PostRequestDTO requestDTO) throws IOException;
 
-    ResponseEntity<Response> editPost(MultipartFile file, PostRequestDTO requestDTO);
+    ResponseEntity<Response> editPost(Long postId, MultipartFile file, PostRequestDTO requestDTO);
 }

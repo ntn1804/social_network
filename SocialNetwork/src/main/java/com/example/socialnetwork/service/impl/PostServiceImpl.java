@@ -42,7 +42,7 @@ public class PostServiceImpl implements PostService {
             filePath = folderPath + file.getOriginalFilename();
         }
 
-        if (file == null && requestDTO == null){
+        if (file == null && requestDTO == null) {
             return ResponseEntity.ok(Response.builder()
                     .statusCode(400)
                     .responseMessage("Post is empty")
@@ -67,12 +67,34 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ResponseEntity<Response> editPost(MultipartFile file, PostRequestDTO requestDTO) {
+    public ResponseEntity<Response> editPost(Long postId, MultipartFile file, PostRequestDTO requestDTO) {
+        String filePath = null;
+        if (file != null) {
+            filePath = folderPath + file.getOriginalFilename();
+        }
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepo.findByUsername(userDetails.getUsername());
+        if (file == null && requestDTO == null) {
+            return ResponseEntity.ok(Response.builder()
+                    .statusCode(400)
+                    .responseMessage("Post is empty")
+                    .build());
+        }
 
-        return null;
+        // find old post by ID
+        if (postId != null) {
+            Optional<Post> oldPost = postRepo.findById(postId);
+            if (oldPost.isPresent()) {
+                // set new attribute (image + text)
+                Post newPost = oldPost.get();
+                newPost.setText(requestDTO != null ? requestDTO.getText() : null);
+                newPost.setImage(file != null ? file.getOriginalFilename() : null);
+                newPost.setFilePath(file != null ? filePath : null);
+                postRepo.save(newPost);
+            }
+        }
+        return ResponseEntity.ok(Response.builder()
+                .statusCode(200)
+                .responseMessage("Edited post successfully")
+                .build());
     }
 }

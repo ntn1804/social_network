@@ -14,4 +14,6 @@ public class Response {
     private String responseMessage;
     private UserInfoResponseDTO userInfo;
     private RegistrationResponseDTO registrationResponse;
+    private CommentResponseDTO commentResponse;
+    private ReactResponseDTO reactResponse;
 }

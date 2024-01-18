@@ -15,4 +15,10 @@ public class MyTest {
         String otp= new DecimalFormat("000000").format(new Random().nextInt(999999));
         System.out.println(otp);
     }
+    
+    @Test
+    public void liked(){
+        boolean liked = false;
+        System.out.println(liked);
+    }
 }

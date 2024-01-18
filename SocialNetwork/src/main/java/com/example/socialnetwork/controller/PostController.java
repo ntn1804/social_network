@@ -24,11 +24,10 @@ public class PostController {
                                                        required = false) PostRequestDTO requestDTO) throws IOException {
         return postService.createPost(file, requestDTO);
     }
-    @PostMapping("/edit-post")
-    public ResponseEntity<Response> editPost(@RequestParam(value = "post-image",
-            required = false) MultipartFile file,
-                                               @RequestParam(value = "post-text",
-                                                       required = false) PostRequestDTO requestDTO) throws IOException {
-        return postService.editPost(file, requestDTO);
+    @PutMapping("/edit-post/{postId}")
+    public ResponseEntity<Response> editPost(@PathVariable("postId") Long postId,
+                                             @RequestParam(value = "post-image", required = false) MultipartFile file,
+                                             @RequestParam(value = "post-text", required = false) PostRequestDTO requestDTO) throws IOException {
+        return postService.editPost(postId, file, requestDTO);
     }
 }
