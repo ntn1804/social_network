@@ -36,19 +36,30 @@ public class ReactServiceImpl implements ReactService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> user = userRepo.findByUsername(userDetails.getUsername());
 
-//        React react = reactRepo.findByReact(requestDTO.getReact());
-//        if (react != null){
-//
-//        }
-
         if(postId != null){
             Optional<Post> post = postRepo.findById(postId);
-            React react = React.builder()
-                    .user(user.orElse(null))
-                    .post(post.orElse(null))
-                    .react(requestDTO.getReact())
-                    .build();
-            reactRepo.save(react);
+            React existingReact = reactRepo.findByPostIdAndUser
+                                            (postId, user.orElse(null));
+            if (existingReact != null && existingReact.getReact().equals(requestDTO.getReact())){
+                reactRepo.delete(existingReact);
+                return ResponseEntity.ok(Response.builder()
+                        .statusCode(200)
+                        .responseMessage("OK")
+                        .reactResponse(ReactResponseDTO.builder()
+                                .react("remove react")
+                                .build())
+                        .build());
+            } else if (existingReact != null){
+                existingReact.setReact(requestDTO.getReact());
+                reactRepo.save(existingReact);
+            } else {
+                React newReact = React.builder()
+                        .user(user.orElse(null))
+                        .post(post.orElse(null))
+                        .react(requestDTO.getReact())
+                        .build();
+                reactRepo.save(newReact);
+            }
         }
         return ResponseEntity.ok(Response.builder()
                 .statusCode(200)
@@ -58,6 +69,4 @@ public class ReactServiceImpl implements ReactService {
                         .build())
                 .build());
     }
-
-
 }

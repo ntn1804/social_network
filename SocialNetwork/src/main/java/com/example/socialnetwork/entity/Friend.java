@@ -1,17 +1,21 @@
 package com.example.socialnetwork.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "friend")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Friend extends BaseEntity {
+
+    @Column(name = "request_status")
+    private String requestStatus;
+
+    private String isFriend;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
