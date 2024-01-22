@@ -15,8 +15,17 @@ public class FriendController {
     private FriendService friendService;
 
     @PostMapping("/friend-request/{friendId}")
-    public ResponseEntity<Response> sendFriendRequest(@PathVariable ("friendId") Long friendId,
-                                                      @RequestBody FriendRequestDTO requestDTO){
-        return friendService.sendFriendRequest(friendId, requestDTO);
+    public ResponseEntity<Response> sendFriendRequest(@PathVariable ("friendId") Long friendId){
+        return friendService.sendFriendRequest(friendId);
+    }
+
+    @PostMapping("/confirm-request/{friendId}")
+    public ResponseEntity<Response> confirmFriendRequest(@PathVariable ("friendId") Long friendId){
+        return friendService.confirmFriendRequest(friendId);
+    }
+
+    @DeleteMapping ("/delete-request/{friendId}")
+    public ResponseEntity<Response> deleteFriendRequest(@PathVariable ("friendId") Long friendId){
+        return friendService.deleteFriendRequest(friendId);
     }
 }

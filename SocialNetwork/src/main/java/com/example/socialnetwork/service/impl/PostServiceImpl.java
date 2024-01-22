@@ -3,8 +3,10 @@ package com.example.socialnetwork.service.impl;
 import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.dto.request.PostRequestDTO;
 import com.example.socialnetwork.dto.response.Response;
+import com.example.socialnetwork.entity.Friend;
 import com.example.socialnetwork.entity.Post;
 import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.repository.FriendRepo;
 import com.example.socialnetwork.repository.PostRepo;
 import com.example.socialnetwork.repository.UserRepo;
 import com.example.socialnetwork.service.PostService;
@@ -17,6 +19,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,6 +33,8 @@ public class PostServiceImpl implements PostService {
 
     @Autowired
     private PostRepo postRepo;
+    @Autowired
+    private FriendRepo friendRepo;
 
     @Override
     public ResponseEntity<Response> createPost(MultipartFile file, PostRequestDTO requestDTO) throws IOException {
@@ -96,5 +102,22 @@ public class PostServiceImpl implements PostService {
                 .statusCode(200)
                 .responseMessage("Edited post successfully")
                 .build());
+    }
+
+    @Override
+    public ResponseEntity<Response> getFriendsPost() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
+        Optional<User> user = userRepo.findByUsername(userDetails.getUsername());
+
+        List<Friend> friendList = friendRepo.findByUserId(user.get().getId());
+        List<Friend> usersFriends = new ArrayList<>();
+
+        for (Friend usersFriend : friendList) {
+            if (usersFriend.getIsFriend().equals("1")){
+                usersFriends.add(usersFriend);
+            }
+        }
+        return null;
     }
 }

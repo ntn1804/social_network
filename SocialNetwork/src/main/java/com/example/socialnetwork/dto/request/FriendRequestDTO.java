@@ -10,5 +10,5 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FriendRequestDTO {
-    private String requestStatus;
+    private String respondFriendRequest;
 }

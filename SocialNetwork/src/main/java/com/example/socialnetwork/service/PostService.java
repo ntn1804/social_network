@@ -11,4 +11,6 @@ public interface PostService {
     ResponseEntity<Response> createPost(MultipartFile file, PostRequestDTO requestDTO) throws IOException;
 
     ResponseEntity<Response> editPost(Long postId, MultipartFile file, PostRequestDTO requestDTO);
+
+    ResponseEntity<Response> getFriendsPost();
 }

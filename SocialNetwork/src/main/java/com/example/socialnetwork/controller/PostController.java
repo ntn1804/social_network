@@ -30,4 +30,9 @@ public class PostController {
                                              @RequestParam(value = "post-text", required = false) PostRequestDTO requestDTO) throws IOException {
         return postService.editPost(postId, file, requestDTO);
     }
+
+    @GetMapping("/get-post")
+    public ResponseEntity<Response> getFriendsPost(){
+        return postService.getFriendsPost();
+    }
 }
