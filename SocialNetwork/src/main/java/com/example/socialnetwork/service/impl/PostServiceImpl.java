@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -110,13 +111,28 @@ public class PostServiceImpl implements PostService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> user = userRepo.findByUsername(userDetails.getUsername());
 
-        List<Friend> friendList = friendRepo.findByUserId(user.get().getId());
-        List<Friend> usersFriends = new ArrayList<>();
+        if (user.isPresent()) {
+            Long userId = user.get().getId();
+            List<Friend> friendList = friendRepo.findAll();
+            List<Long> usersFriends = new ArrayList<>();
 
-        for (Friend usersFriend : friendList) {
-            if (usersFriend.getIsFriend().equals("1")){
-                usersFriends.add(usersFriend);
+            for (Friend usersFriend : friendList) {
+                if (usersFriend.getRequestStatus().equals("Accepted")){
+                    if (usersFriend.getFriend().getId().equals(userId)) {
+                        usersFriends.add(usersFriend.getUser().getId());
+                    }
+                    if (usersFriend.getUser().getId().equals(userId)) {
+                        usersFriends.add(usersFriend.getFriend().getId());
+                    }
+                }
             }
+            System.out.println(usersFriends);
+
+//            List<Post> friendsPosts = new ArrayList<>();
+//            for (Post friendPost : )
+
+//            Post post = postRepo.findAllByFriendId(usersFriends);
+//            System.out.println(post);
         }
         return null;
     }

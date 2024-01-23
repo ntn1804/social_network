@@ -40,9 +40,11 @@ public class FriendServiceImpl implements FriendService {
                             .responseMessage("You are already friends")
                             .build());
                 } else if (friend.getRequestStatus().equals("Pending")) {
-                    return ResponseEntity.badRequest().body(Response.builder()
-                            .statusCode(400)
-                            .responseMessage("They already sent you a friend request")
+                    friend.setRequestStatus("Accepted");
+                    friendRepo.save(friend);
+                    return ResponseEntity.ok(Response.builder()
+                            .statusCode(200)
+                            .responseMessage("Confirm friend request successfully")
                             .build());
                 }
             }
@@ -87,15 +89,13 @@ public class FriendServiceImpl implements FriendService {
             if (friend1 != null) {
                 return ResponseEntity.badRequest().body(Response.builder()
                         .statusCode(400)
-                        .responseMessage("You can not confirm friend request by yourself")
+                        .responseMessage("Can not confirm friend request by yourself")
                         .build());
             }
 
             if (friend != null) {
-
                 if (friend.getRequestStatus().equals("Pending")) {
                     friend.setRequestStatus("Accepted");
-                    friend.setIsFriend("1");
                     friendRepo.save(friend);
 
                 } else if (friend.getRequestStatus().equals("Accepted")) {
@@ -107,7 +107,7 @@ public class FriendServiceImpl implements FriendService {
             } else {
                 return ResponseEntity.badRequest().body(Response.builder()
                         .statusCode(400)
-                        .responseMessage("You have not sent friend request yet")
+                        .responseMessage("You have not sent friend request")
                         .build());
             }
         }
@@ -125,7 +125,7 @@ public class FriendServiceImpl implements FriendService {
 
         if (friendId != null) {
             Friend friend = friendRepo.findByUserIdAndFriendId(friendId, user.get().getId());
-            Friend friend1 = friendRepo.findByUserIdAndFriendId(friendId, user.get().getId());
+            Friend friend1 = friendRepo.findByUserIdAndFriendId(user.get().getId(), friendId);
 
             if (friend1 != null) {
                 friendRepo.delete(friend1);
@@ -136,9 +136,10 @@ public class FriendServiceImpl implements FriendService {
             }
             if (friend != null) {
                 if (friend.getRequestStatus().equals("Accept")) {
-                    return ResponseEntity.badRequest().body(Response.builder()
-                            .statusCode(400)
-                            .responseMessage("You are already friends")
+                    friendRepo.delete(friend);
+                    return ResponseEntity.ok(Response.builder()
+                            .statusCode(200)
+                            .responseMessage("Delete friend successfully")
                             .build());
                 } else if (friend.getRequestStatus().equals("Pending")) {
                     friendRepo.delete(friend);

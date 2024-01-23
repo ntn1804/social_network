@@ -15,8 +15,6 @@ public class Friend extends BaseEntity {
     @Column(name = "request_status")
     private String requestStatus;
 
-    private String isFriend;
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;

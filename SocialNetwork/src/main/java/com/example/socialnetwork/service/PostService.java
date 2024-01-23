@@ -13,4 +13,5 @@ public interface PostService {
     ResponseEntity<Response> editPost(Long postId, MultipartFile file, PostRequestDTO requestDTO);
 
     ResponseEntity<Response> getFriendsPost();
+
 }
