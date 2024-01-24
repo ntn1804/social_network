@@ -18,7 +18,7 @@ import java.util.Date;
 public class BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //auto increment
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column

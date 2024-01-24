@@ -12,7 +12,11 @@ import java.time.LocalDateTime;
 @Entity
 @Builder
 @Table(name = "otp")
-public class Otp extends BaseEntity{
+public class Otp {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column
     private String username;

@@ -1,7 +1,7 @@
 package com.example.socialnetwork.config;
 
 import com.example.socialnetwork.entity.User;
-import com.example.socialnetwork.repository.UserRepo;
+import com.example.socialnetwork.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,10 +14,10 @@ import java.util.Optional;
 public class UserInfoUserDetailsService implements UserDetailsService {
 
     @Autowired
-    private UserRepo userRepo;
+    private UserRepository userRepository;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> user = userRepo.findByUsername(username);
+        Optional<User> user = userRepository.findByUsername(username);
         return user.map(UserInfoUserDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException("user not found " + username));
     }

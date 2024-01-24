@@ -2,15 +2,14 @@ package com.example.socialnetwork.service.impl;
 
 import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.dto.request.ReactRequestDTO;
-import com.example.socialnetwork.dto.response.CommentResponseDTO;
 import com.example.socialnetwork.dto.response.ReactResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.Post;
 import com.example.socialnetwork.entity.React;
 import com.example.socialnetwork.entity.User;
-import com.example.socialnetwork.repository.PostRepo;
-import com.example.socialnetwork.repository.ReactRepo;
-import com.example.socialnetwork.repository.UserRepo;
+import com.example.socialnetwork.repository.PostRepository;
+import com.example.socialnetwork.repository.ReactRepository;
+import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.ReactService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,24 +23,24 @@ import java.util.Optional;
 public class ReactServiceImpl implements ReactService {
 
     @Autowired
-    private UserRepo userRepo;
+    private UserRepository userRepository;
     @Autowired
-    private PostRepo postRepo;
+    private PostRepository postRepository;
     @Autowired
-    private ReactRepo reactRepo;
+    private ReactRepository reactRepository;
 
     @Override
     public ResponseEntity<Response> reactPost(Long postId, ReactRequestDTO requestDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepo.findByUsername(userDetails.getUsername());
+        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
 
         if(postId != null){
-            Optional<Post> post = postRepo.findById(postId);
-            React existingReact = reactRepo.findByPostIdAndUser
+            Optional<Post> post = postRepository.findById(postId);
+            React existingReact = reactRepository.findByPostIdAndUser
                                             (postId, user.orElse(null));
             if (existingReact != null && existingReact.getReact().equals(requestDTO.getReact())){
-                reactRepo.delete(existingReact);
+                reactRepository.delete(existingReact);
                 return ResponseEntity.ok(Response.builder()
                         .statusCode(200)
                         .responseMessage("OK")
@@ -51,14 +50,14 @@ public class ReactServiceImpl implements ReactService {
                         .build());
             } else if (existingReact != null){
                 existingReact.setReact(requestDTO.getReact());
-                reactRepo.save(existingReact);
+                reactRepository.save(existingReact);
             } else {
                 React newReact = React.builder()
                         .user(user.orElse(null))
                         .post(post.orElse(null))
                         .react(requestDTO.getReact())
                         .build();
-                reactRepo.save(newReact);
+                reactRepository.save(newReact);
             }
         }
         return ResponseEntity.ok(Response.builder()

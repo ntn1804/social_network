@@ -2,6 +2,10 @@ package com.example.socialnetwork.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.util.Date;
 
 @Entity
 @Table(name = "friend")
@@ -10,7 +14,12 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Friend extends BaseEntity {
+@EntityListeners(AuditingEntityListener.class)
+public class Friend {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "request_status")
     private String requestStatus;
@@ -23,4 +32,7 @@ public class Friend extends BaseEntity {
     @JoinColumn(name = "friend_id")
     private User friend;
 
+    @Column
+    @CreatedDate
+    private Date createdDate;
 }

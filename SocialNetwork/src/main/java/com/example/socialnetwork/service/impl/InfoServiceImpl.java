@@ -5,7 +5,7 @@ import com.example.socialnetwork.dto.request.UserInfoRequestDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.dto.response.UserInfoResponseDTO;
 import com.example.socialnetwork.entity.User;
-import com.example.socialnetwork.repository.UserRepo;
+import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.InfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,19 +19,19 @@ import java.util.Optional;
 public class InfoServiceImpl implements InfoService {
 
     @Autowired
-    private UserRepo userRepo;
+    private UserRepository userRepository;
     @Override
     public ResponseEntity<Response> updateInfo(UserInfoRequestDTO requestDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> listUser = userRepo.findByUsername(userDetails.getUsername());
+        Optional<User> listUser = userRepository.findByUsername(userDetails.getUsername());
         if (listUser.isPresent()){
             User user = listUser.get();
             user.setRealName(requestDTO.getRealName());
             user.setDateOfBirth(requestDTO.getDateOfBirth());
             user.setJob(requestDTO.getJob());
             user.setPlace(requestDTO.getPlace());
-            userRepo.save(user);
+            userRepository.save(user);
         } else {
             return ResponseEntity.badRequest().body(Response.builder()
                             .statusCode(400)

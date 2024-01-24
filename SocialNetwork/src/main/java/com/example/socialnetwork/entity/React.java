@@ -1,10 +1,11 @@
 package com.example.socialnetwork.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.util.Date;
 
 @Entity
 @Table(name = "react")
@@ -13,7 +14,12 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-public class React extends BaseEntity{
+@EntityListeners(AuditingEntityListener.class)
+public class React {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String react;
 
@@ -24,4 +30,8 @@ public class React extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "post_id")
     private Post post;
+
+    @Column
+    @CreatedDate
+    private Date createdDate;
 }

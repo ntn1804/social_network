@@ -3,8 +3,8 @@ import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.Friend;
 import com.example.socialnetwork.entity.User;
-import com.example.socialnetwork.repository.FriendRepo;
-import com.example.socialnetwork.repository.UserRepo;
+import com.example.socialnetwork.repository.FriendRepository;
+import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.FriendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,20 +18,20 @@ import java.util.Optional;
 public class FriendServiceImpl implements FriendService {
 
     @Autowired
-    private UserRepo userRepo;
+    private UserRepository userRepository;
     @Autowired
-    private FriendRepo friendRepo;
+    private FriendRepository friendRepository;
 
     @Override
     public ResponseEntity<Response> sendFriendRequest(Long friendId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepo.findByUsername(userDetails.getUsername());
+        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
 
         if (friendId != null) {
-            Optional<User> usersFriend = userRepo.findById(friendId);
-            Friend existingFriendRequest = friendRepo.findByUserIdAndFriendId(user.get().getId(), friendId);
-            Friend friend = friendRepo.findByUserIdAndFriendId(friendId, user.get().getId());
+            Optional<User> usersFriend = userRepository.findById(friendId);
+            Friend existingFriendRequest = friendRepository.findByUserIdAndFriendId(user.get().getId(), friendId);
+            Friend friend = friendRepository.findByUserIdAndFriendId(friendId, user.get().getId());
 
             if (friend != null){
                 if (friend.getRequestStatus().equals("Accepted")) {
@@ -41,7 +41,7 @@ public class FriendServiceImpl implements FriendService {
                             .build());
                 } else if (friend.getRequestStatus().equals("Pending")) {
                     friend.setRequestStatus("Accepted");
-                    friendRepo.save(friend);
+                    friendRepository.save(friend);
                     return ResponseEntity.ok(Response.builder()
                             .statusCode(200)
                             .responseMessage("Confirm friend request successfully")
@@ -66,7 +66,7 @@ public class FriendServiceImpl implements FriendService {
                             .friend(usersFriend.orElse(null))
                             .requestStatus("Pending")
                             .build();
-                    friendRepo.save(newFriendRequest);
+                    friendRepository.save(newFriendRequest);
                 }
             }
         }
@@ -80,11 +80,11 @@ public class FriendServiceImpl implements FriendService {
     public ResponseEntity<Response> confirmFriendRequest(Long friendId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepo.findByUsername(userDetails.getUsername());
+        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
 
         if (friendId != null) {
-            Friend friend = friendRepo.findByUserIdAndFriendId(friendId, user.get().getId());
-            Friend friend1 = friendRepo.findByUserIdAndFriendId(user.get().getId(), friendId);
+            Friend friend = friendRepository.findByUserIdAndFriendId(friendId, user.get().getId());
+            Friend friend1 = friendRepository.findByUserIdAndFriendId(user.get().getId(), friendId);
 
             if (friend1 != null) {
                 return ResponseEntity.badRequest().body(Response.builder()
@@ -96,7 +96,7 @@ public class FriendServiceImpl implements FriendService {
             if (friend != null) {
                 if (friend.getRequestStatus().equals("Pending")) {
                     friend.setRequestStatus("Accepted");
-                    friendRepo.save(friend);
+                    friendRepository.save(friend);
 
                 } else if (friend.getRequestStatus().equals("Accepted")) {
                     return ResponseEntity.badRequest().body(Response.builder()
@@ -121,14 +121,14 @@ public class FriendServiceImpl implements FriendService {
     public ResponseEntity<Response> deleteFriendRequest(Long friendId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepo.findByUsername(userDetails.getUsername());
+        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
 
         if (friendId != null) {
-            Friend friend = friendRepo.findByUserIdAndFriendId(friendId, user.get().getId());
-            Friend friend1 = friendRepo.findByUserIdAndFriendId(user.get().getId(), friendId);
+            Friend friend = friendRepository.findByUserIdAndFriendId(friendId, user.get().getId());
+            Friend friend1 = friendRepository.findByUserIdAndFriendId(user.get().getId(), friendId);
 
             if (friend1 != null) {
-                friendRepo.delete(friend1);
+                friendRepository.delete(friend1);
                 return ResponseEntity.ok(Response.builder()
                         .statusCode(200)
                         .responseMessage("Delete friend request successfully")
@@ -136,13 +136,13 @@ public class FriendServiceImpl implements FriendService {
             }
             if (friend != null) {
                 if (friend.getRequestStatus().equals("Accept")) {
-                    friendRepo.delete(friend);
+                    friendRepository.delete(friend);
                     return ResponseEntity.ok(Response.builder()
                             .statusCode(200)
                             .responseMessage("Delete friend successfully")
                             .build());
                 } else if (friend.getRequestStatus().equals("Pending")) {
-                    friendRepo.delete(friend);
+                    friendRepository.delete(friend);
                 }
             }
         }

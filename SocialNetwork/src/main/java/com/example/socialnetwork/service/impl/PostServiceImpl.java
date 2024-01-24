@@ -3,12 +3,14 @@ package com.example.socialnetwork.service.impl;
 import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.dto.request.PostRequestDTO;
 import com.example.socialnetwork.dto.response.Response;
+import com.example.socialnetwork.dto.response.ShowAllPostResponseDTO;
 import com.example.socialnetwork.entity.Friend;
 import com.example.socialnetwork.entity.Post;
 import com.example.socialnetwork.entity.User;
-import com.example.socialnetwork.repository.FriendRepo;
-import com.example.socialnetwork.repository.PostRepo;
-import com.example.socialnetwork.repository.UserRepo;
+import com.example.socialnetwork.mapper.PostMapper;
+import com.example.socialnetwork.repository.FriendRepository;
+import com.example.socialnetwork.repository.PostRepository;
+import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLOutput;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -30,19 +29,21 @@ public class PostServiceImpl implements PostService {
     private final String folderPath = "C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\Post\\";
 
     @Autowired
-    private UserRepo userRepo;
+    private UserRepository userRepository;
 
     @Autowired
-    private PostRepo postRepo;
+    private PostRepository postRepository;
     @Autowired
-    private FriendRepo friendRepo;
+    private FriendRepository friendRepository;
+    @Autowired
+    private PostMapper postMapper;
 
     @Override
     public ResponseEntity<Response> createPost(MultipartFile file, PostRequestDTO requestDTO) throws IOException {
         // use jwt to get username.
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepo.findByUsername(userDetails.getUsername());
+        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
 
         String filePath = null;
         if (file != null) {
@@ -61,7 +62,7 @@ public class PostServiceImpl implements PostService {
                     .image(file != null ? file.getOriginalFilename() : null)
                     .filePath(file != null ? filePath : null)
                     .build();
-            postRepo.save(post);
+            postRepository.save(post);
 
             if (file != null) {
                 file.transferTo(new File(filePath));
@@ -89,14 +90,14 @@ public class PostServiceImpl implements PostService {
 
         // find old post by ID
         if (postId != null) {
-            Optional<Post> oldPost = postRepo.findById(postId);
+            Optional<Post> oldPost = postRepository.findById(postId);
             if (oldPost.isPresent()) {
                 // set new attribute (image + text)
                 Post newPost = oldPost.get();
                 newPost.setText(requestDTO != null ? requestDTO.getText() : null);
                 newPost.setImage(file != null ? file.getOriginalFilename() : null);
                 newPost.setFilePath(file != null ? filePath : null);
-                postRepo.save(newPost);
+                postRepository.save(newPost);
             }
         }
         return ResponseEntity.ok(Response.builder()
@@ -106,14 +107,14 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ResponseEntity<Response> getFriendsPost() {
+    public ResponseEntity<List<ShowAllPostResponseDTO>> getAllPosts() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepo.findByUsername(userDetails.getUsername());
+        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
 
         if (user.isPresent()) {
             Long userId = user.get().getId();
-            List<Friend> friendList = friendRepo.findAll();
+            List<Friend> friendList = friendRepository.findAll();
             List<Long> usersFriends = new ArrayList<>();
 
             for (Friend usersFriend : friendList) {
@@ -126,13 +127,13 @@ public class PostServiceImpl implements PostService {
                     }
                 }
             }
-            System.out.println(usersFriends);
+            usersFriends.add(userId);
 
-//            List<Post> friendsPosts = new ArrayList<>();
-//            for (Post friendPost : )
+            List<Post> timelinePost = postRepository.findAllByUserIdIn(usersFriends);
 
-//            Post post = postRepo.findAllByFriendId(usersFriends);
-//            System.out.println(post);
+            timelinePost.sort(Collections.reverseOrder());
+
+            return ResponseEntity.ok(postMapper.convertPostToShowAllPostResponseDTO(timelinePost));
         }
         return null;
     }

@@ -1,7 +1,10 @@
 package com.example.socialnetwork.dto.response;
 
+import com.example.socialnetwork.entity.Post;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
+
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,4 +19,5 @@ public class Response {
     private RegistrationResponseDTO registrationResponse;
     private CommentResponseDTO commentResponse;
     private ReactResponseDTO reactResponse;
+    private List<Post> timelinePost;
 }

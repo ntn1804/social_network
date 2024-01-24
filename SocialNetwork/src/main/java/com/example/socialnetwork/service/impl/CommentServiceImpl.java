@@ -7,9 +7,9 @@ import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.Comment;
 import com.example.socialnetwork.entity.Post;
 import com.example.socialnetwork.entity.User;
-import com.example.socialnetwork.repository.CommentRepo;
-import com.example.socialnetwork.repository.PostRepo;
-import com.example.socialnetwork.repository.UserRepo;
+import com.example.socialnetwork.repository.CommentRepository;
+import com.example.socialnetwork.repository.PostRepository;
+import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,22 +23,22 @@ import java.util.Optional;
 public class CommentServiceImpl implements CommentService {
 
     @Autowired
-    private UserRepo userRepo;
+    private UserRepository userRepository;
 
     @Autowired
-    private PostRepo postRepo;
+    private PostRepository postRepository;
 
     @Autowired
-    private CommentRepo commentRepo;
+    private CommentRepository commentRepository;
 
     @Override
     public ResponseEntity<Response> comment(Long postId, CommentRequestDTO requestDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepo.findByUsername(userDetails.getUsername());
+        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
 
         if (postId != null) {
-            Optional<Post> post = postRepo.findById(postId);
+            Optional<Post> post = postRepository.findById(postId);
             if(requestDTO != null && requestDTO.getContent().isEmpty()){
                 return ResponseEntity.ok(Response.builder()
                         .statusCode(400)
@@ -50,7 +50,7 @@ public class CommentServiceImpl implements CommentService {
                         .user(user.orElse(null))
                         .post(post.orElse(null))
                         .build();
-                commentRepo.save(comment);
+                commentRepository.save(comment);
             }
 
         }
@@ -65,7 +65,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public ResponseEntity<Response> editComment(Long commentId, CommentRequestDTO requestDTO) {
-        Optional<Comment> oldComment = commentRepo.findById(commentId);
+        Optional<Comment> oldComment = commentRepository.findById(commentId);
         
         if(requestDTO != null && requestDTO.getContent().isEmpty()) {
             return ResponseEntity.ok(Response.builder()
@@ -77,7 +77,7 @@ public class CommentServiceImpl implements CommentService {
         if(oldComment.isPresent()){
             Comment newComment = oldComment.get();
             newComment.setContent(requestDTO != null ? requestDTO.getContent() : null);
-            commentRepo.save(newComment);
+            commentRepository.save(newComment);
         }
         return ResponseEntity.ok(Response.builder()
                 .statusCode(200)
