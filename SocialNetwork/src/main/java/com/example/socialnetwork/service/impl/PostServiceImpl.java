@@ -26,7 +26,7 @@ import java.util.*;
 @Service
 public class PostServiceImpl implements PostService {
 
-    private final String folderPath = "C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\Post\\";
+    private final String folderPath = "C:\\Users\\MY PC\\Desktop\\Dev9\\MyFiles\\Post\\";
 
     @Autowired
     private UserRepository userRepository;
@@ -118,7 +118,7 @@ public class PostServiceImpl implements PostService {
             List<Long> usersFriends = new ArrayList<>();
 
             for (Friend usersFriend : friendList) {
-                if (usersFriend.getRequestStatus().equals("Accepted")){
+                if (usersFriend.getRequestStatus().equals("Accepted")) {
                     if (usersFriend.getFriend().getId().equals(userId)) {
                         usersFriends.add(usersFriend.getUser().getId());
                     }
@@ -131,7 +131,8 @@ public class PostServiceImpl implements PostService {
 
             List<Post> timelinePost = postRepository.findAllByUserIdIn(usersFriends);
 
-            timelinePost.sort(Collections.reverseOrder());
+//            timelinePost.sort(Collections.reverseOrder());
+            Collections.sort(timelinePost);
 
             return ResponseEntity.ok(postMapper.convertPostToShowAllPostResponseDTO(timelinePost));
         }
