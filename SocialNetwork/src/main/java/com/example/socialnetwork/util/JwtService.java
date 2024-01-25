@@ -1,4 +1,4 @@
-package com.example.socialnetwork.service;
+package com.example.socialnetwork.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

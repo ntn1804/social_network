@@ -35,4 +35,9 @@ public class ProfileController {
     public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
         return storageService.downloadImageFromFileSystem(fileName);
     }
+
+    @GetMapping("/get-user-info/{userId}")
+    public ResponseEntity<Response> getUserInfo(@PathVariable("userId") Long userId){
+        return infoService.getUserInfo(userId);
+    }
 }

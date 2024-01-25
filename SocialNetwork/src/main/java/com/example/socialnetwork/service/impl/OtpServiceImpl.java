@@ -6,7 +6,7 @@ import com.example.socialnetwork.entity.Otp;
 import com.example.socialnetwork.entity.User;
 import com.example.socialnetwork.repository.OtpRepository;
 import com.example.socialnetwork.repository.UserRepository;
-import com.example.socialnetwork.service.JwtService;
+import com.example.socialnetwork.util.JwtService;
 import com.example.socialnetwork.service.OtpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;

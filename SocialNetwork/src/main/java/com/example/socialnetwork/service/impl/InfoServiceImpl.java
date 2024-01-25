@@ -13,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -27,7 +29,6 @@ public class InfoServiceImpl implements InfoService {
         Optional<User> listUser = userRepository.findByUsername(userDetails.getUsername());
         if (listUser.isPresent()){
             User user = listUser.get();
-            user.setRealName(requestDTO.getRealName());
             user.setDateOfBirth(requestDTO.getDateOfBirth());
             user.setJob(requestDTO.getJob());
             user.setPlace(requestDTO.getPlace());
@@ -42,11 +43,43 @@ public class InfoServiceImpl implements InfoService {
                         .statusCode(200)
                         .responseMessage("Updated successfully")
                         .userInfo(UserInfoResponseDTO.builder()
-                                .realName(requestDTO.getRealName())
+                                .fullName(requestDTO.getFullName())
                                 .dateOfBirth(requestDTO.getDateOfBirth())
                                 .job(requestDTO.getJob())
                                 .place(requestDTO.getPlace())
                                 .build())
                 .build());
+    }
+
+    @Override
+    public ResponseEntity<Response> getUserInfo(Long userId) {
+
+        List<User> userList = userRepository.findAll();
+        List<Long> userIdList = new ArrayList<>();
+
+        for (User id : userList) {
+            userIdList.add(id.getId());
+        }
+
+        if (!userIdList.contains(userId)) {
+            return ResponseEntity.badRequest().body(Response.builder()
+                    .statusCode(400)
+                    .responseMessage("User does not exist")
+                    .build());
+        }
+
+        Optional<User> user = userRepository.findById(userId);
+
+        return user.map(value -> ResponseEntity.ok(Response.builder()
+                .statusCode(200)
+                .userInfo(UserInfoResponseDTO.builder()
+                        .email(value.getEmail())
+                        .username(value.getUsername())
+                        .fullName(value.getFullName())
+                        .dateOfBirth(value.getDateOfBirth())
+                        .job(value.getJob())
+                        .place(value.getPlace())
+                        .build())
+                .build())).orElse(null);
     }
 }

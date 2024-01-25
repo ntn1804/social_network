@@ -12,7 +12,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserInfoRequestDTO {
-    private String realName;
+    private String fullName;
     private Date dateOfBirth;
     private String job;
     private String place;

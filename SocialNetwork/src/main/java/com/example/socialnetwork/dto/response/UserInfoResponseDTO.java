@@ -10,7 +10,9 @@ import java.util.Date;
 @Setter
 @Builder
 public class UserInfoResponseDTO {
-    private String realName;
+    private String email;
+    private String username;
+    private String fullName;
     private Date dateOfBirth;
     private String job;
     private String place;

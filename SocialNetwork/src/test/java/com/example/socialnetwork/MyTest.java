@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.text.DecimalFormat;
+import java.util.Calendar;
 import java.util.Random;
 
 @ExtendWith(MockitoExtension.class)
@@ -17,8 +18,10 @@ public class MyTest {
     }
     
     @Test
-    public void liked(){
-        boolean liked = false;
-        System.out.println(liked);
+    public void date(){
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, -7);
+        System.out.println("Date = "+ cal.getTime());
     }
+
 }

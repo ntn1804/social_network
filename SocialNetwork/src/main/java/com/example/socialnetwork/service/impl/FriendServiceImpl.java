@@ -1,4 +1,5 @@
 package com.example.socialnetwork.service.impl;
+
 import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.Friend;
@@ -10,9 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
-import java.util.Objects;
-import java.util.Optional;
+
+import java.util.*;
 
 @Service
 public class FriendServiceImpl implements FriendService {
@@ -28,12 +30,26 @@ public class FriendServiceImpl implements FriendService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
 
+        List<User> userList = userRepository.findAll();
+        List<Long> userIdList = new ArrayList<>();
+
+        for (User id : userList) {
+            userIdList.add(id.getId());
+        }
+
+        if (!userIdList.contains(friendId)) {
+            return ResponseEntity.badRequest().body(Response.builder()
+                    .statusCode(400)
+                    .responseMessage("User does not exist")
+                    .build());
+        }
+
         if (friendId != null) {
             Optional<User> usersFriend = userRepository.findById(friendId);
             Friend existingFriendRequest = friendRepository.findByUserIdAndFriendId(user.get().getId(), friendId);
             Friend friend = friendRepository.findByUserIdAndFriendId(friendId, user.get().getId());
 
-            if (friend != null){
+            if (friend != null) {
                 if (friend.getRequestStatus().equals("Accepted")) {
                     return ResponseEntity.badRequest().body(Response.builder()
                             .statusCode(400)

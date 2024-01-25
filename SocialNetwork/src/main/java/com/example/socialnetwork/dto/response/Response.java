@@ -1,6 +1,7 @@
 package com.example.socialnetwork.dto.response;
 
 import com.example.socialnetwork.entity.Post;
+import com.example.socialnetwork.entity.User;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 

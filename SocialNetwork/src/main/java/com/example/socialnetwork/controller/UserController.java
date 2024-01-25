@@ -48,4 +48,5 @@ public class UserController {
     public ResponseEntity<Response> removeUser() {
         return userService.removeUser();
     }
+
 }

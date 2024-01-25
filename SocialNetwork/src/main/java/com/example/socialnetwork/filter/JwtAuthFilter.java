@@ -1,7 +1,7 @@
 package com.example.socialnetwork.filter;
 
 import com.example.socialnetwork.config.UserInfoUserDetailsService;
-import com.example.socialnetwork.service.JwtService;
+import com.example.socialnetwork.util.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

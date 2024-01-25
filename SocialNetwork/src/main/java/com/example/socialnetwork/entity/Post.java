@@ -2,6 +2,7 @@ package com.example.socialnetwork.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -31,6 +32,9 @@ public class Post implements Comparable<Post> {
 
     @Column
     private String filePath;
+
+    @Column
+    private String privacy = "public";
 
     @ManyToOne
     @JoinColumn(name = "user_id")

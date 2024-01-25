@@ -6,4 +6,6 @@ import org.springframework.http.ResponseEntity;
 
 public interface InfoService {
     ResponseEntity<Response> updateInfo(UserInfoRequestDTO requestDTO);
+
+    ResponseEntity<Response> getUserInfo(Long userId);
 }

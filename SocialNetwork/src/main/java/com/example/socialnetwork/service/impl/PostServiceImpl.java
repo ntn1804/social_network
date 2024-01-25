@@ -26,7 +26,8 @@ import java.util.*;
 @Service
 public class PostServiceImpl implements PostService {
 
-    private final String folderPath = "C:\\Users\\MY PC\\Desktop\\Dev9\\MyFiles\\Post\\";
+//  private final String folderPath = "C:\\Users\\MY PC\\Desktop\\Dev9\\MyFiles\\Post\\";
+    private final String folderPath = "C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\Post\\";
 
     @Autowired
     private UserRepository userRepository;
@@ -61,6 +62,7 @@ public class PostServiceImpl implements PostService {
                     .user(user.orElse(null))
                     .image(file != null ? file.getOriginalFilename() : null)
                     .filePath(file != null ? filePath : null)
+                    .privacy("public")
                     .build();
             postRepository.save(post);
 
@@ -115,28 +117,24 @@ public class PostServiceImpl implements PostService {
         if (user.isPresent()) {
             Long userId = user.get().getId();
             List<Friend> friendList = friendRepository.findAll();
-            List<Long> usersFriends = new ArrayList<>();
+            List<Long> usersFriendsId = new ArrayList<>();
 
-            for (Friend usersFriend : friendList) {
-                if (usersFriend.getRequestStatus().equals("Accepted")) {
-                    if (usersFriend.getFriend().getId().equals(userId)) {
-                        usersFriends.add(usersFriend.getUser().getId());
+            for (Friend userFriends : friendList) {
+                if (userFriends.getRequestStatus().equals("Accepted")) {
+                    if (userFriends.getFriend().getId().equals(userId)) {
+                        usersFriendsId.add(userFriends.getUser().getId());
                     }
-                    if (usersFriend.getUser().getId().equals(userId)) {
-                        usersFriends.add(usersFriend.getFriend().getId());
+                    if (userFriends.getUser().getId().equals(userId)) {
+                        usersFriendsId.add(userFriends.getFriend().getId());
                     }
                 }
             }
-            usersFriends.add(userId);
+            usersFriendsId.add(userId);
 
-            List<Post> timelinePost = postRepository.findAllByUserIdIn(usersFriends);
+            List<Post> timelinePost = postRepository.findAllByUserIdIn(usersFriendsId);
 
-<<<<<<< HEAD
-=======
-//            timelinePost.sort(Collections.reverseOrder());
             Collections.sort(timelinePost);
 
->>>>>>> 2d91b1eeb8a048283a3bfea4ba77818cc2101b03
             return ResponseEntity.ok(postMapper.convertPostToShowAllPostResponseDTO(timelinePost));
         }
         return null;

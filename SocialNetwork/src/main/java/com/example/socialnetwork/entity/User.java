@@ -33,8 +33,6 @@ public class User {
     @Column
     private String role;
 
-    private String realName;
-
     @Column
     private String fullName;
 

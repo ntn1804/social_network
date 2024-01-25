@@ -12,4 +12,5 @@ public interface UserService {
     String forgotPassword(ForgotPasswordRequestDTO requestDTO);
     String resetPassword(String tokenResetPassword, ResetPasswordDTO requestDTO);
     ResponseEntity<Response> removeUser();
+
 }
