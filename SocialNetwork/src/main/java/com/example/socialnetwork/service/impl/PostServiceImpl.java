@@ -131,8 +131,6 @@ public class PostServiceImpl implements PostService {
 
             List<Post> timelinePost = postRepository.findAllByUserIdIn(usersFriends);
 
-            timelinePost.sort(Collections.reverseOrder());
-
             return ResponseEntity.ok(postMapper.convertPostToShowAllPostResponseDTO(timelinePost));
         }
         return null;
