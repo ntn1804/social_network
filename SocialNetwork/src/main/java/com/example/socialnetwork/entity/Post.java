@@ -5,6 +5,7 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -46,7 +47,8 @@ public class Post implements Comparable<Post> {
     private Date createdDate;
 
     @Override
+//    @Transient
     public int compareTo(Post o) {
-        return getCreatedDate().compareTo(o.getCreatedDate());
+        return -this.createdDate.compareTo(o.createdDate);
     }
 }
