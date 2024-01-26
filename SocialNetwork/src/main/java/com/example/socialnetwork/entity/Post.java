@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -48,10 +49,9 @@ public class Post implements Comparable<Post> {
 
     @Column
     @CreatedDate
-    private Date createdDate;
+    private LocalDateTime createdDate;
 
     @Override
-//    @Transient
     public int compareTo(Post o) {
         return -this.createdDate.compareTo(o.createdDate);
     }

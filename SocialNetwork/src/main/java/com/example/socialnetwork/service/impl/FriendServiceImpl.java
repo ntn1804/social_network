@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -112,6 +113,7 @@ public class FriendServiceImpl implements FriendService {
             if (friend != null) {
                 if (friend.getRequestStatus().equals("Pending")) {
                     friend.setRequestStatus("Accepted");
+                    friend.setCreatedDate(LocalDateTime.now());
                     friendRepository.save(friend);
 
                 } else if (friend.getRequestStatus().equals("Accepted")) {

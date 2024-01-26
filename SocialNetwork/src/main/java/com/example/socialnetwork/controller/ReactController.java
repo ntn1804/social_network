@@ -15,8 +15,7 @@ public class ReactController {
     private ReactService reactService;
 
     @PostMapping("/react-post/{postId}")
-    public ResponseEntity<Response> reactPost(@PathVariable("postId") Long postId,
-                                            @RequestBody ReactRequestDTO requestDTO) {
-        return reactService.reactPost(postId, requestDTO);
+    public ResponseEntity<Response> reactPost(@PathVariable("postId") Long postId) {
+        return reactService.reactPost(postId);
     }
 }

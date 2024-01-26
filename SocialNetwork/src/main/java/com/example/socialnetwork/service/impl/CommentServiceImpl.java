@@ -17,6 +17,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -37,6 +40,20 @@ public class CommentServiceImpl implements CommentService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
 
+        List<Post> postList = postRepository.findAll();
+        List<Long> postIdList = new ArrayList<>();
+
+        for (Post id : postList) {
+            postIdList.add(id.getId());
+        }
+
+        if (!postIdList.contains(postId)) {
+            return ResponseEntity.badRequest().body(Response.builder()
+                    .statusCode(400)
+                    .responseMessage("Post does not exist")
+                    .build());
+        }
+
         if (postId != null) {
             Optional<Post> post = postRepository.findById(postId);
             if(requestDTO != null && requestDTO.getContent().isEmpty()){
@@ -49,6 +66,7 @@ public class CommentServiceImpl implements CommentService {
                         .content(requestDTO != null ? requestDTO.getContent() : null)
                         .user(user.orElse(null))
                         .post(post.orElse(null))
+                        .createdDate(LocalDateTime.now())
                         .build();
                 commentRepository.save(comment);
             }

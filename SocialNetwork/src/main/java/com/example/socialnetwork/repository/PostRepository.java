@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -12,6 +13,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     List<Post> findAllByUserIdIn(List<Long> userIdList);
 
-    long countByCreatedDate(Date createdDate);
+//    long countByPostIds(List<Long> postIds);
 
+    List<Post> findAllByUserId(Long userId);
 }
