@@ -56,6 +56,7 @@ public class CommentServiceImpl implements CommentService {
 
         if (postId != null) {
             Optional<Post> post = postRepository.findById(postId);
+//            Post post = postRepository.findById(postId).orElseThrow(new RuntimeException());
             if(requestDTO != null && requestDTO.getContent().isEmpty()){
                 return ResponseEntity.ok(Response.builder()
                         .statusCode(400)

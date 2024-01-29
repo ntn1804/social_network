@@ -4,6 +4,7 @@ import com.example.socialnetwork.dto.request.*;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.service.OtpService;
 import com.example.socialnetwork.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class UserController {
     private OtpService otpService;
 
     @PostMapping("/register")
-    public ResponseEntity<Response> registration(@RequestBody RegistrationRequestDTO requestDTO) {
+    public ResponseEntity<Response> registration(@Valid @RequestBody RegistrationRequestDTO requestDTO) {
         return userService.registerUser(requestDTO);
     }
 

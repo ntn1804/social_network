@@ -27,9 +27,6 @@ public class Otp {
     @Column
     private LocalDateTime expired;
 
-    @Column
-    private boolean isDeleted;
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
