@@ -12,11 +12,13 @@ import com.example.socialnetwork.repository.PasswordRepository;
 import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -38,50 +40,29 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public void saveUser(RegistrationRequestDTO requestDTO) {
+    public User saveUser(RegistrationRequestDTO requestDTO) {
         User user = User.builder()
                 .email(requestDTO.getEmail())
                 .username(requestDTO.getUsername())
                 .password(passwordEncoder.encode(requestDTO.getPassword()))
                 .role("USER")
                 .build();
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
-    public ResponseEntity<Response> registerUser(RegistrationRequestDTO requestDTO) {
+    public RegistrationResponseDTO registerUser(RegistrationRequestDTO requestDTO) {
         User existingUser = userRepository.findByEmailOrUsername(requestDTO.getEmail(), requestDTO.getUsername());
-        if (requestDTO.getUsername() != null && requestDTO.getUsername().isEmpty()) {
-            return ResponseEntity.badRequest().body(Response.builder()
-                            .statusCode(400)
-                            .responseMessage("Username can not be empty")
-                    .build());
-        } else if (requestDTO.getEmail() != null && requestDTO.getEmail().isEmpty()) {
-            return ResponseEntity.badRequest().body(Response.builder()
-                    .statusCode(400)
-                    .responseMessage("Email can not be empty")
-                    .build());
-        } else if (!patternEmailMatches(requestDTO.getEmail(), regexMail)) {
-            return ResponseEntity.badRequest().body(Response.builder()
-                    .statusCode(400)
-                    .responseMessage("Email is invalid")
-                    .build());
-        }
+
         if (existingUser != null) {
-            return ResponseEntity.badRequest().body(Response.builder()
-                    .statusCode(400)
-                    .responseMessage("Email or Username has been registered")
-                    .build());
-        } else {
-            saveUser(requestDTO);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email or Username has been registered");
         }
-        return ResponseEntity.ok(Response.builder()
-                .statusCode(200)
-                .responseMessage("Registered successfully")
-                .registrationResponse(RegistrationResponseDTO.builder()
-                        .username(requestDTO.getUsername())
-                        .email(requestDTO.getEmail())
-                        .build())
-                .build());
+
+        var res = saveUser(requestDTO);
+
+        return RegistrationResponseDTO.builder()
+                .email(res.getEmail())
+                .username(res.getUsername())
+                .build();
     }
 
     public static boolean patternEmailMatches(String emailAddress, String regexPattern) {
@@ -106,15 +87,15 @@ public class UserServiceImpl implements UserService {
 
     public String generateToken(ForgotPasswordRequestDTO requestDTO) {
         TokenResetPassword existingToken = passwordRepository.findByEmail(requestDTO.getEmail());
-        if(existingToken != null){
+        if (existingToken != null) {
             passwordRepository.delete(existingToken);
         }
         UUID uuid = UUID.randomUUID();
         String tokenResetPassword = uuid.toString();
         passwordRepository.save(TokenResetPassword.builder()
-                        .email(requestDTO.getEmail())
-                        .token(tokenResetPassword)
-                        .expired(LocalDateTime.now().plusMinutes(30))
+                .email(requestDTO.getEmail())
+                .token(tokenResetPassword)
+                .expired(LocalDateTime.now().plusMinutes(30))
                 .build());
         return tokenResetPassword;
     }
@@ -122,14 +103,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public String resetPassword(String tokenResetPassword, ResetPasswordDTO requestDTO) {
         TokenResetPassword token = passwordRepository.findByToken(tokenResetPassword);
-        if(Objects.nonNull(token)){
-           User user = userRepository.findByEmail(token.getEmail());
-           if(Objects.nonNull(user)){
-               user.setPassword(passwordEncoder.encode(requestDTO.getNewPassword()));
-               userRepository.save(user);
-           }else {
-               return "deochat";
-           }
+        if (Objects.nonNull(token)) {
+            User user = userRepository.findByEmail(token.getEmail());
+            if (Objects.nonNull(user)) {
+                user.setPassword(passwordEncoder.encode(requestDTO.getNewPassword()));
+                userRepository.save(user);
+            } else {
+                return "deochat";
+            }
         }
         return "Reset password successfully";
     }
@@ -139,14 +120,14 @@ public class UserServiceImpl implements UserService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> listUser = userRepository.findByUsername(userDetails.getUsername());
-        if(listUser.isPresent()){
+        if (listUser.isPresent()) {
             User user = listUser.get();
             Long userId = user.getId();
             userRepository.deleteById(userId);
         } else {
             return ResponseEntity.ok(Response.builder()
-                            .statusCode(400)
-                            .responseMessage("Removed user unsuccessfully")
+                    .statusCode(400)
+                    .responseMessage("Removed user unsuccessfully")
                     .build());
         }
 

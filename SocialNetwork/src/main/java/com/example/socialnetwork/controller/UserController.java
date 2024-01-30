@@ -1,6 +1,7 @@
 package com.example.socialnetwork.controller;
 
 import com.example.socialnetwork.dto.request.*;
+import com.example.socialnetwork.dto.response.RegistrationResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.service.OtpService;
 import com.example.socialnetwork.service.UserService;
@@ -20,8 +21,8 @@ public class UserController {
     private OtpService otpService;
 
     @PostMapping("/register")
-    public ResponseEntity<Response> registration(@Valid @RequestBody RegistrationRequestDTO requestDTO) {
-        return userService.registerUser(requestDTO);
+    public ResponseEntity<RegistrationResponseDTO> registration(@Valid @RequestBody RegistrationRequestDTO requestDTO) {
+        return ResponseEntity.ok(userService.registerUser(requestDTO));
     }
 
     @PostMapping("/login")

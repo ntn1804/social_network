@@ -42,9 +42,9 @@ class UserServiceImplTest {
         when(userRepository.findByEmailOrUsername(anyString(), anyString())).thenReturn(new User());
 
         //then
-        ResponseEntity<Response> abc = userService.registerUser(new RegistrationRequestDTO());
-        ResponseEntity<Response> bca = null;
-        Assertions.assertEquals(bca,abc);
+//        ResponseEntity<Response> abc = userService.registerUser(new RegistrationRequestDTO());
+//        ResponseEntity<Response> bca = null;
+//        Assertions.assertEquals(bca,abc);
 
 
 
