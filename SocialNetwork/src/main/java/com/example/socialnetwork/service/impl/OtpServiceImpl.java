@@ -2,6 +2,8 @@ package com.example.socialnetwork.service.impl;
 
 import com.example.socialnetwork.dto.request.LoginRequestDTO;
 import com.example.socialnetwork.dto.request.OtpValidationRequest;
+import com.example.socialnetwork.dto.response.OtpResponseDTO;
+import com.example.socialnetwork.dto.response.TokenResponseDTO;
 import com.example.socialnetwork.entity.Otp;
 import com.example.socialnetwork.entity.User;
 import com.example.socialnetwork.repository.OtpRepository;
@@ -9,8 +11,10 @@ import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.util.JwtService;
 import com.example.socialnetwork.service.OtpService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
@@ -33,18 +37,17 @@ public class OtpServiceImpl implements OtpService {
     private UserRepository userRepository;
 
     @Override
-    public String sendOtp(LoginRequestDTO requestDTO) {
-        Optional<User> listUser = userRepository.findByUsername(requestDTO.getUsername());
-        if (listUser.isPresent()){
-            User existingUser = listUser.get();
-            if (existingUser.getUsername().equals(requestDTO.getUsername()) &&
-                passwordEncoder.matches(requestDTO.getPassword(), existingUser.getPassword())){
-                return generateOtp(requestDTO);
+    public OtpResponseDTO sendOtp(LoginRequestDTO requestDTO) {
+
+        Optional<User> user = userRepository.findByUsername(requestDTO.getUsername());
+
+        if(user.isPresent() && passwordEncoder.matches(requestDTO.getPassword(), user.get().getPassword())) {
+            return OtpResponseDTO.builder()
+                    .otpCode(generateOtp(requestDTO))
+                    .build();
             } else {
-                return "Invalid username or password";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username or password");
             }
-        }
-        return null;
     }
 
     public String generateOtp(LoginRequestDTO requestDTO){
@@ -61,16 +64,18 @@ public class OtpServiceImpl implements OtpService {
         return otp;
     }
 
-    public String validateOtp(OtpValidationRequest requestDTO){
+    public TokenResponseDTO validateOtp(OtpValidationRequest requestDTO){
         Otp otp = otpRepository.findByUsername(requestDTO.getUsername());
         if(otp == null){
-            return "Login to get OTP";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Login to get OTP");
         } else if (otp.getExpired().isBefore(LocalDateTime.now())) {
-            return "Expired OTP";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Expired OTP");
         } else if (!otp.getOtpCode().equals(requestDTO.getOtpCode())){
-            return "Invalid OTP";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid OTP");
         }
         otpRepository.delete(otp);
-        return jwtService.generateToken(requestDTO.getUsername());
+        return TokenResponseDTO.builder()
+                .token(jwtService.generateToken(requestDTO.getUsername()))
+                .build();
     }
 }

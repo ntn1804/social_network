@@ -1,8 +1,7 @@
 package com.example.socialnetwork.controller;
 
 import com.example.socialnetwork.dto.request.*;
-import com.example.socialnetwork.dto.response.RegistrationResponseDTO;
-import com.example.socialnetwork.dto.response.Response;
+import com.example.socialnetwork.dto.response.*;
 import com.example.socialnetwork.service.OtpService;
 import com.example.socialnetwork.service.UserService;
 import jakarta.validation.Valid;
@@ -26,29 +25,28 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequestDTO requestDTO) {
-        return otpService.sendOtp(requestDTO);
+    public ResponseEntity<OtpResponseDTO> login(@RequestBody LoginRequestDTO requestDTO) {
+        return ResponseEntity.ok(otpService.sendOtp(requestDTO));
     }
 
     @PostMapping("/validateOtp")
-    public String validateOtpAndGetToken(@RequestBody OtpValidationRequest requestDTO) {
-        return otpService.validateOtp(requestDTO);
+    public ResponseEntity<TokenResponseDTO> validateOtpAndGetToken(@RequestBody OtpValidationRequest requestDTO) {
+        return ResponseEntity.ok(otpService.validateOtp(requestDTO));
     }
 
     @PostMapping("/forgot-password")
-    public String forgotPassword(@RequestBody ForgotPasswordRequestDTO requestDTO) {
-        return userService.forgotPassword(requestDTO);
+    public ResponseEntity<ForgotPasswordResponseDTO> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDTO requestDTO) {
+        return ResponseEntity.ok(userService.forgotPassword(requestDTO));
     }
 
     @GetMapping("/reset-password/{token}")
-    public String resetPassword(@PathVariable("token") String tokenResetPassword,
+    public ResponseEntity<Response> resetPassword(@PathVariable("token") String tokenResetPassword,
                                 @RequestBody ResetPasswordDTO requestDTO) {
-        return userService.resetPassword(tokenResetPassword, requestDTO);
+        return ResponseEntity.ok(userService.resetPassword(tokenResetPassword, requestDTO));
     }
 
     @DeleteMapping("/remove-user")
     public ResponseEntity<Response> removeUser() {
-        return userService.removeUser();
+        return ResponseEntity.ok(userService.removeUser());
     }
-
 }

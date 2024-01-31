@@ -4,6 +4,7 @@ import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.dto.request.ForgotPasswordRequestDTO;
 import com.example.socialnetwork.dto.request.ResetPasswordDTO;
 import com.example.socialnetwork.dto.request.RegistrationRequestDTO;
+import com.example.socialnetwork.dto.response.ForgotPasswordResponseDTO;
 import com.example.socialnetwork.dto.response.RegistrationResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.TokenResetPassword;
@@ -57,11 +58,11 @@ public class UserServiceImpl implements UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email or Username has been registered");
         }
 
-        var res = saveUser(requestDTO);
+        var result = saveUser(requestDTO);
 
         return RegistrationResponseDTO.builder()
-                .email(res.getEmail())
-                .username(res.getUsername())
+                .email(result.getEmail())
+                .username(result.getUsername())
                 .build();
     }
 
@@ -72,17 +73,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String forgotPassword(ForgotPasswordRequestDTO requestDTO) {
+    public ForgotPasswordResponseDTO forgotPassword(ForgotPasswordRequestDTO requestDTO) {
         User existingUser = userRepository.findByEmail(requestDTO.getEmail());
-        if (requestDTO.getEmail() != null && requestDTO.getEmail().isEmpty()) {
-            return "Invalid email";
-        } else if (!patternEmailMatches(requestDTO.getEmail(), regexMail)) {
-            return "Invalid email";
-        } else if (existingUser == null) {
-            return "Email does not exist";
+        if (existingUser == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email or username");
         }
         String tokenResetPassword = generateToken(requestDTO);
-        return "http://localhost:8080/api/v1/user/reset-password/" + tokenResetPassword;
+        return ForgotPasswordResponseDTO.builder()
+                .urlAndTokenResetPassword("http://localhost:8080/api/v1/user/reset-password/" + tokenResetPassword)
+                .build();
     }
 
     public String generateToken(ForgotPasswordRequestDTO requestDTO) {
@@ -94,46 +93,46 @@ public class UserServiceImpl implements UserService {
         String tokenResetPassword = uuid.toString();
         passwordRepository.save(TokenResetPassword.builder()
                 .email(requestDTO.getEmail())
-                .token(tokenResetPassword)
-                .expired(LocalDateTime.now().plusMinutes(30))
+                .tokenSeries(tokenResetPassword)
+                .expired(LocalDateTime.now().plusMinutes(5))
                 .build());
         return tokenResetPassword;
     }
 
     @Override
-    public String resetPassword(String tokenResetPassword, ResetPasswordDTO requestDTO) {
-        TokenResetPassword token = passwordRepository.findByToken(tokenResetPassword);
-        if (Objects.nonNull(token)) {
-            User user = userRepository.findByEmail(token.getEmail());
+    public Response resetPassword(String tokenResetPassword, ResetPasswordDTO requestDTO) {
+        TokenResetPassword token = passwordRepository.findByTokenSeries(tokenResetPassword);
+        if (tokenResetPassword.isEmpty() || token == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid token");
+        }
+
+        User user = userRepository.findByEmail(token.getEmail());
             if (Objects.nonNull(user)) {
                 user.setPassword(passwordEncoder.encode(requestDTO.getNewPassword()));
                 userRepository.save(user);
             } else {
-                return "deochat";
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User does not exist");
             }
-        }
-        return "Reset password successfully";
+        return Response.builder()
+                .responseMessage("Reset password successfully")
+                .build();
     }
 
     @Override
-    public ResponseEntity<Response> removeUser() {
+    public Response removeUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> listUser = userRepository.findByUsername(userDetails.getUsername());
-        if (listUser.isPresent()) {
-            User user = listUser.get();
-            Long userId = user.getId();
+        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
+
+        if (user.isPresent()) {
+            Long userId = user.get().getId();
             userRepository.deleteById(userId);
         } else {
-            return ResponseEntity.ok(Response.builder()
-                    .statusCode(400)
-                    .responseMessage("Removed user unsuccessfully")
-                    .build());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsuccessfully removed user");
         }
 
-        return ResponseEntity.ok(Response.builder()
-                .statusCode(200)
-                .responseMessage("Removed user successfully")
-                .build());
+        return Response.builder()
+                .responseMessage("Successfully removed user")
+                .build();
     }
 }

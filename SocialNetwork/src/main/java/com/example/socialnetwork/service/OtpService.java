@@ -2,10 +2,12 @@ package com.example.socialnetwork.service;
 
 import com.example.socialnetwork.dto.request.LoginRequestDTO;
 import com.example.socialnetwork.dto.request.OtpValidationRequest;
+import com.example.socialnetwork.dto.response.OtpResponseDTO;
+import com.example.socialnetwork.dto.response.TokenResponseDTO;
 
 public interface OtpService {
 
-    String sendOtp(LoginRequestDTO requestDTO);
+    OtpResponseDTO sendOtp(LoginRequestDTO requestDTO);
 
-    String validateOtp(OtpValidationRequest requestDTO);
+    TokenResponseDTO validateOtp(OtpValidationRequest requestDTO);
 }

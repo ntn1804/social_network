@@ -47,7 +47,7 @@ public class ReactServiceImpl implements ReactService {
 
         if (!postIds.contains(postId)) {
             return ResponseEntity.badRequest().body(Response.builder()
-                    .statusCode(400)
+//                    .statusCode(400)
                     .responseMessage("Post does not exist")
                     .build());
         }
@@ -59,7 +59,7 @@ public class ReactServiceImpl implements ReactService {
             if (existingReact != null) {
                 reactRepository.delete(existingReact);
                 return ResponseEntity.ok(Response.builder()
-                        .statusCode(200)
+//                        .statusCode(200)
                         .responseMessage("Unliked post")
                         .build());
             } else {
@@ -70,7 +70,7 @@ public class ReactServiceImpl implements ReactService {
                         .createdDate(LocalDateTime.now())
                         .build());
                 return ResponseEntity.ok(Response.builder()
-                        .statusCode(200)
+//                        .statusCode(200)
                         .responseMessage("Liked post")
                         .build());
             }

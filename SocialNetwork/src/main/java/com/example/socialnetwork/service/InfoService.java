@@ -2,10 +2,13 @@ package com.example.socialnetwork.service;
 
 import com.example.socialnetwork.dto.request.UserInfoRequestDTO;
 import com.example.socialnetwork.dto.response.Response;
+import com.example.socialnetwork.dto.response.UserInfoResponseDTO;
 import org.springframework.http.ResponseEntity;
 
 public interface InfoService {
-    ResponseEntity<Response> updateInfo(UserInfoRequestDTO requestDTO);
+    UserInfoResponseDTO updateInfo(UserInfoRequestDTO requestDTO);
 
-    ResponseEntity<Response> getUserInfo(Long userId);
+    UserInfoResponseDTO getUserInfo(Long userId);
+
+    UserInfoResponseDTO getMyInfo();
 }

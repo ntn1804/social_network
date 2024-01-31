@@ -53,7 +53,6 @@ public class PostServiceImpl implements PostService {
 
         if (file == null && requestDTO == null) {
             return ResponseEntity.ok(Response.builder()
-                    .statusCode(400)
                     .responseMessage("Post is empty")
                     .build());
         } else {
@@ -71,7 +70,6 @@ public class PostServiceImpl implements PostService {
             }
         }
         return ResponseEntity.ok(Response.builder()
-                .statusCode(200)
                 .responseMessage("Created post successfully")
                 .build());
     }
@@ -85,7 +83,6 @@ public class PostServiceImpl implements PostService {
 
         if (file == null && requestDTO == null) {
             return ResponseEntity.ok(Response.builder()
-                    .statusCode(400)
                     .responseMessage("Post is empty")
                     .build());
         }
@@ -103,7 +100,6 @@ public class PostServiceImpl implements PostService {
             }
         }
         return ResponseEntity.ok(Response.builder()
-                .statusCode(200)
                 .responseMessage("Edited post successfully")
                 .build());
     }

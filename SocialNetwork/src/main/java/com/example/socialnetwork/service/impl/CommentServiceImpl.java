@@ -49,7 +49,6 @@ public class CommentServiceImpl implements CommentService {
 
         if (!postIdList.contains(postId)) {
             return ResponseEntity.badRequest().body(Response.builder()
-                    .statusCode(400)
                     .responseMessage("Post does not exist")
                     .build());
         }
@@ -59,7 +58,6 @@ public class CommentServiceImpl implements CommentService {
 //            Post post = postRepository.findById(postId).orElseThrow(new RuntimeException());
             if(requestDTO != null && requestDTO.getContent().isEmpty()){
                 return ResponseEntity.ok(Response.builder()
-                        .statusCode(400)
                         .responseMessage("Comment is empty")
                         .build());
             } else {
@@ -74,7 +72,6 @@ public class CommentServiceImpl implements CommentService {
 
         }
         return ResponseEntity.ok(Response.builder()
-                .statusCode(200)
                 .responseMessage("OK")
                 .commentResponse(CommentResponseDTO.builder()
                         .content(requestDTO != null ? requestDTO.getContent() : null)
@@ -88,7 +85,6 @@ public class CommentServiceImpl implements CommentService {
         
         if(requestDTO != null && requestDTO.getContent().isEmpty()) {
             return ResponseEntity.ok(Response.builder()
-                    .statusCode(400)
                     .responseMessage("Comment is empty")
                     .build());
         }
@@ -99,7 +95,6 @@ public class CommentServiceImpl implements CommentService {
             commentRepository.save(newComment);
         }
         return ResponseEntity.ok(Response.builder()
-                .statusCode(200)
                 .responseMessage("OK")
                 .commentResponse(CommentResponseDTO.builder()
                         .content(requestDTO != null ? requestDTO.getContent() : null)

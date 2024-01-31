@@ -2,8 +2,10 @@ package com.example.socialnetwork.controller;
 
 import com.example.socialnetwork.dto.request.UserInfoRequestDTO;
 import com.example.socialnetwork.dto.response.Response;
+import com.example.socialnetwork.dto.response.UserInfoResponseDTO;
 import com.example.socialnetwork.service.InfoService;
 import com.example.socialnetwork.service.StorageService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,13 +24,13 @@ public class ProfileController {
     private InfoService infoService;
 
     @PostMapping("/update-info")
-    public ResponseEntity<Response> updateInfo(@RequestBody UserInfoRequestDTO requestDTO){
-        return infoService.updateInfo(requestDTO);
+    public ResponseEntity<UserInfoResponseDTO> updateInfo(@Valid @RequestBody UserInfoRequestDTO requestDTO){
+        return ResponseEntity.ok(infoService.updateInfo(requestDTO));
     }
 
-    @PostMapping("/upload-image")
-    public ResponseEntity<?> uploadImageToFileSystem(@RequestParam("image") MultipartFile file) throws IOException {
-        return storageService.uploadImageToFileSystem(file);
+    @PostMapping("/upload-avatar")
+    public ResponseEntity<Response> uploadImageToFileSystem(@RequestParam("image") MultipartFile file) throws IOException {
+        return ResponseEntity.ok(storageService.uploadImageToFileSystem(file));
     }
 
     @GetMapping("/{fileName}")
@@ -37,7 +39,12 @@ public class ProfileController {
     }
 
     @GetMapping("/get-user-info/{userId}")
-    public ResponseEntity<Response> getUserInfo(@PathVariable("userId") Long userId){
-        return infoService.getUserInfo(userId);
+    public ResponseEntity<UserInfoResponseDTO> getUserInfo(@PathVariable("userId") Long userId){
+        return ResponseEntity.ok(infoService.getUserInfo(userId));
+    }
+
+    @GetMapping("/my-info")
+    public ResponseEntity<UserInfoResponseDTO> getMyInfo(){
+        return ResponseEntity.ok(infoService.getMyInfo());
     }
 }

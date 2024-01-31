@@ -1,5 +1,6 @@
 package com.example.socialnetwork.service.impl;
 
+import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.FileData;
 import com.example.socialnetwork.repository.FileDataRepository;
 import com.example.socialnetwork.service.StorageService;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.UUID;
 
 @Service
 public class StorageServiceImpl implements StorageService {
@@ -22,24 +24,23 @@ public class StorageServiceImpl implements StorageService {
 
     private final String folderPath = "C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\";
 
-    public ResponseEntity<?> uploadImageToFileSystem(MultipartFile file) throws IOException {
-        String filePath = folderPath + file.getOriginalFilename();
-        FileData existingFileData = fileDataRepository.findByFilePath(filePath);
+    public Response uploadImageToFileSystem(MultipartFile file) throws IOException {
+        UUID uuid = UUID.randomUUID();
+        String stringUuid = uuid.toString();
 
-        if (existingFileData != null){
-            fileDataRepository.delete(existingFileData);
-        }
+        String filePath = folderPath + stringUuid;
 
         fileDataRepository.save(FileData.builder()
-                        .name(file.getOriginalFilename())
+                        .name(stringUuid)
                         .type(file.getContentType())
                         .filePath(filePath)
                 .build());
 
-        file.transferTo(new File(filePath));
+        file.transferTo(new File(filePath + ".jpg"));
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body("file uploaded successfully: " + file.getOriginalFilename());
+        return Response.builder()
+                .responseMessage("file uploaded successfully")
+                .build();
     }
 
     public ResponseEntity<?> downloadImageFromFileSystem(String fileName) throws IOException {

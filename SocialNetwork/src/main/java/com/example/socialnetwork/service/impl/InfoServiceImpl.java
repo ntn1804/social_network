@@ -8,10 +8,12 @@ import com.example.socialnetwork.entity.User;
 import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.InfoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,63 +25,67 @@ public class InfoServiceImpl implements InfoService {
     @Autowired
     private UserRepository userRepository;
     @Override
-    public ResponseEntity<Response> updateInfo(UserInfoRequestDTO requestDTO) {
+    public UserInfoResponseDTO updateInfo(UserInfoRequestDTO requestDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> listUser = userRepository.findByUsername(userDetails.getUsername());
-        if (listUser.isPresent()){
-            User user = listUser.get();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+
+        if (optionalUser.isPresent()){
+            User user = optionalUser.get();
+            user.setFullName(requestDTO.getFullName());
             user.setDateOfBirth(requestDTO.getDateOfBirth());
             user.setJob(requestDTO.getJob());
             user.setPlace(requestDTO.getPlace());
             userRepository.save(user);
         } else {
-            return ResponseEntity.badRequest().body(Response.builder()
-                            .statusCode(400)
-                            .responseMessage("Updated unsuccessfully")
-                    .build());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
         }
-        return ResponseEntity.ok(Response.builder()
-                        .statusCode(200)
-                        .responseMessage("Updated successfully")
-                        .userInfo(UserInfoResponseDTO.builder()
-                                .fullName(requestDTO.getFullName())
-                                .dateOfBirth(requestDTO.getDateOfBirth())
-                                .job(requestDTO.getJob())
-                                .place(requestDTO.getPlace())
-                                .build())
-                .build());
+        return UserInfoResponseDTO.builder()
+                .email(optionalUser.get().getEmail())
+                .username(optionalUser.get().getUsername())
+                .fullName(requestDTO.getFullName())
+                .dateOfBirth(requestDTO.getDateOfBirth())
+                .job(requestDTO.getJob())
+                .place(requestDTO.getPlace())
+                .build();
     }
 
     @Override
-    public ResponseEntity<Response> getUserInfo(Long userId) {
+    public UserInfoResponseDTO getUserInfo(Long userId) {
+        Optional<User> optionalUser = userRepository.findById(userId);
 
-        List<User> userList = userRepository.findAll();
-        List<Long> userIdList = new ArrayList<>();
-
-        for (User id : userList) {
-            userIdList.add(id.getId());
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            return UserInfoResponseDTO.builder()
+                    .email(user.getEmail())
+                    .username(user.getUsername())
+                    .fullName(user.getFullName())
+                    .dateOfBirth(user.getDateOfBirth())
+                    .job(user.getJob())
+                    .place(user.getPlace())
+                    .build();
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
         }
+    }
 
-        if (!userIdList.contains(userId)) {
-            return ResponseEntity.badRequest().body(Response.builder()
-                    .statusCode(400)
-                    .responseMessage("User does not exist")
-                    .build());
+    @Override
+    public UserInfoResponseDTO getMyInfo() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            return UserInfoResponseDTO.builder()
+                    .email(user.getEmail())
+                    .username(user.getUsername())
+                    .fullName(user.getFullName())
+                    .dateOfBirth(user.getDateOfBirth())
+                    .job(user.getJob())
+                    .place(user.getPlace())
+                    .build();
         }
-
-        Optional<User> user = userRepository.findById(userId);
-
-        return user.map(value -> ResponseEntity.ok(Response.builder()
-                .statusCode(200)
-                .userInfo(UserInfoResponseDTO.builder()
-                        .email(value.getEmail())
-                        .username(value.getUsername())
-                        .fullName(value.getFullName())
-                        .dateOfBirth(value.getDateOfBirth())
-                        .job(value.getJob())
-                        .place(value.getPlace())
-                        .build())
-                .build())).orElse(null);
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "lỗi này");
     }
 }

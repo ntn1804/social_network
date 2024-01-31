@@ -14,9 +14,7 @@ import java.util.List;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Response {
-    private int statusCode;
     private String responseMessage;
-    private UserInfoResponseDTO userInfo;
     private RegistrationResponseDTO registrationResponse;
     private CommentResponseDTO commentResponse;
     private ReactResponseDTO reactResponse;

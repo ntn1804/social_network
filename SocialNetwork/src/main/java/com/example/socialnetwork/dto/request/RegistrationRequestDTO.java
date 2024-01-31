@@ -16,9 +16,9 @@ public class RegistrationRequestDTO {
     @Email(message = "Invalid email")
     private String email;
 
-    @NotBlank(message = "Username is invalid")
+    @NotBlank(message = "Invalid username")
     private String username;
 
-    @NotBlank(message = "Password is invalid")
+    @NotBlank(message = "Invalid password")
     private String password;
 }

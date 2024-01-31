@@ -25,7 +25,7 @@ public class TokenResetPassword {
     private String email;
 
     @Column
-    private String token;
+    private String tokenSeries;
 
     @Column
     private LocalDateTime expired;
