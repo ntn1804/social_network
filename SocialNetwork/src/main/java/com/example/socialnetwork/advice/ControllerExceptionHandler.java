@@ -1,10 +1,13 @@
 package com.example.socialnetwork.advice;
 
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
@@ -28,4 +31,26 @@ public class ControllerExceptionHandler {
     public String handleResponseStatusException(ResponseStatusException exception) {
         return exception.getMessage();
     }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public String handleHttpMessageNotReadableException() {
+        return "error: expected format dd/MM/yyyy";
+    }
+
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MultipartException.class)
+    public String handleMultipartException() {
+        return "error: please choose a file";
+    }
+
+
+    //chua bat dc invalid token
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(SignatureException.class)
+    public String handleSignatureException() {
+        return "error: invalid token";
+    }
+
 }

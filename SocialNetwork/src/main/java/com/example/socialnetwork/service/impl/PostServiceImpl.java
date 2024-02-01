@@ -13,11 +13,14 @@ import com.example.socialnetwork.repository.PostRepository;
 import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,38 +43,95 @@ public class PostServiceImpl implements PostService {
     private PostMapper postMapper;
 
     @Override
-    public ResponseEntity<Response> createPost(MultipartFile file, PostRequestDTO requestDTO) throws IOException {
+    public Response createPost(MultipartFile file, PostRequestDTO requestDTO) throws IOException {
         // use jwt to get username.
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
-        String filePath = null;
-        if (file != null) {
-            filePath = folderPath + file.getOriginalFilename();
-        }
+        if (optionalUser.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
+            }
 
         if (file == null && requestDTO == null) {
-            return ResponseEntity.ok(Response.builder()
-                    .responseMessage("Post is empty")
-                    .build());
-        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Post is empty");
+        }
+
+        if (requestDTO != null && file == null) {
             Post post = Post.builder()
-                    .text(requestDTO != null ? requestDTO.getText() : null)
-                    .user(user.orElse(null))
-                    .image(file != null ? file.getOriginalFilename() : null)
-                    .filePath(file != null ? filePath : null)
+                    .text(requestDTO.getText())
+                    .user(optionalUser.get())
                     .privacy("public")
                     .build();
+
             postRepository.save(post);
 
-            if (file != null) {
-                file.transferTo(new File(filePath));
-            }
+            return Response.builder()
+                    .responseMessage("Created post successfully")
+                    .build();
         }
-        return ResponseEntity.ok(Response.builder()
-                .responseMessage("Created post successfully")
-                .build());
+
+        if (requestDTO != null && file != null) {
+            if (file.getContentType() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose a file");
+            }
+
+            MediaType mediaType = MediaType.parseMediaType(file.getContentType());
+            if (!mediaType.getType().equals("image")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose an image file");
+            }
+
+            UUID uuid = UUID.randomUUID();
+            String stringUuid = uuid.toString();
+            String filePath = folderPath + stringUuid;
+
+            Post post = Post.builder()
+                    .user(optionalUser.get())
+                    .image(stringUuid)
+                    .filePath(filePath)
+                    .text(requestDTO.getText())
+                    .privacy("public")
+                    .build();
+
+            postRepository.save(post);
+
+            file.transferTo(new File(filePath + ".jpg"));
+
+            return Response.builder()
+                    .responseMessage("Created post successfully")
+                    .build();
+        }
+
+        if (requestDTO == null && file != null) {
+            if (file.getContentType() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose a file");
+            }
+
+            MediaType mediaType = MediaType.parseMediaType(file.getContentType());
+            if (!mediaType.getType().equals("image")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose an image file");
+            }
+
+            UUID uuid = UUID.randomUUID();
+            String stringUuid = uuid.toString();
+            String filePath = folderPath + stringUuid;
+
+            Post post = Post.builder()
+                    .user(optionalUser.get())
+                    .image(stringUuid)
+                    .filePath(filePath)
+                    .privacy("public")
+                    .build();
+
+            postRepository.save(post);
+
+            file.transferTo(new File(filePath + ".jpg"));
+
+            return Response.builder()
+                    .responseMessage("Created post successfully")
+                    .build();
+        }
+        return null;
     }
 
     @Override

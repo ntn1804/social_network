@@ -8,6 +8,5 @@ import java.util.List;
 
 public interface ReactRepository extends JpaRepository<React, Long> {
     React findByPostIdAndUser(Long postId, User user);
-
     List<React> findByUserId(Long userId);
 }

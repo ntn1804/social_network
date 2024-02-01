@@ -60,4 +60,7 @@ public class User {
 
     @OneToMany(mappedBy = "friend")
     private List<Friend> friendList;
+
+    @OneToMany(mappedBy = "user")
+    private List<Post> avatarList;
 }

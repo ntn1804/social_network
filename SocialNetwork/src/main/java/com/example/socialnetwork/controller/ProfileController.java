@@ -4,7 +4,7 @@ import com.example.socialnetwork.dto.request.UserInfoRequestDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.dto.response.UserInfoResponseDTO;
 import com.example.socialnetwork.service.InfoService;
-import com.example.socialnetwork.service.StorageService;
+import com.example.socialnetwork.service.ImageService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +18,7 @@ import java.io.IOException;
 public class ProfileController {
 
     @Autowired
-    private StorageService storageService;
+    private ImageService imageService;
 
     @Autowired
     private InfoService infoService;
@@ -29,13 +29,13 @@ public class ProfileController {
     }
 
     @PostMapping("/upload-avatar")
-    public ResponseEntity<Response> uploadImageToFileSystem(@RequestParam("image") MultipartFile file) throws IOException {
-        return ResponseEntity.ok(storageService.uploadImageToFileSystem(file));
+    public ResponseEntity<Response> uploadAvatar(@RequestParam("image") MultipartFile file) throws IOException {
+        return ResponseEntity.ok(imageService.uploadAvatar(file));
     }
 
-    @GetMapping("/{fileName}")
-    public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
-        return storageService.downloadImageFromFileSystem(fileName);
+    @GetMapping("/my-avatar")
+    public ResponseEntity<?> showMyAvatar() throws IOException {
+        return imageService.showMyAvatar();
     }
 
     @GetMapping("/get-user-info/{userId}")

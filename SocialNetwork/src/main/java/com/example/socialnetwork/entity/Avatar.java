@@ -4,13 +4,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "FileData")
+@Table(name = "avatar")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class FileData {
+public class Avatar {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,4 +19,9 @@ public class FileData {
     private String name;
     private String type;
     private String filePath;
+    private int isDeleted;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }

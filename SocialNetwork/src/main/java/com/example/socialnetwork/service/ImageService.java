@@ -6,9 +6,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
-public interface StorageService {
+public interface ImageService {
 
-    Response uploadImageToFileSystem(MultipartFile file) throws IOException;
+    Response uploadAvatar(MultipartFile file) throws IOException;
 
-    ResponseEntity<?> downloadImageFromFileSystem(String fileName) throws IOException;
+    ResponseEntity<?> showMyAvatar() throws IOException;
 }
