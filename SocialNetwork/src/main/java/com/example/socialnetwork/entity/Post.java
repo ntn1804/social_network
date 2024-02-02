@@ -22,17 +22,11 @@ import java.util.List;
 public class Post implements Comparable<Post> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //auto increment
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(columnDefinition = "TEXT")
     private String text;
-
-    @Column
-    private String image;
-
-    @Column
-    private String filePath;
 
     @Column
     private String privacy = "public";
@@ -46,6 +40,9 @@ public class Post implements Comparable<Post> {
 
     @OneToMany(mappedBy = "post")
     private List<Comment> commentList;
+
+    @OneToMany(mappedBy = "post")
+    private List<PostImage> postImageList;
 
     @Column
     @CreatedDate

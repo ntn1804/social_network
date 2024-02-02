@@ -11,9 +11,11 @@ import java.io.IOException;
 import java.util.List;
 
 public interface PostService {
-    Response createPost(MultipartFile file, PostRequestDTO requestDTO) throws IOException;
+    Response createPost(MultipartFile[] files, PostRequestDTO requestDTO) throws IOException;
 
     ResponseEntity<Response> editPost(Long postId, MultipartFile file, PostRequestDTO requestDTO);
+
+    Response editPost2(Long postId, MultipartFile[] files, PostRequestDTO requestDTO);
 
     ResponseEntity<List<ShowAllPostResponseDTO>> getAllPosts();
 

@@ -5,8 +5,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @ExtendWith(MockitoExtension.class)
 public class MyTest {
@@ -22,6 +26,14 @@ public class MyTest {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, -7);
         System.out.println("Date = "+ cal.getTime());
+    }
+
+    @Test
+    public void testStream() {
+        List<Integer> list = Arrays.asList(4,3,2,1,0,3,4,5);
+        list.stream().distinct().sorted().forEach(System.out::println);
+//        Stream<Integer> sortedList = list.stream().sorted();
+//        System.out.println(sortedList);
     }
 
 }

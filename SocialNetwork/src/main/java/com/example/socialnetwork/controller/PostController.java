@@ -22,16 +22,24 @@ public class PostController {
 
     @PostMapping("/create-post")
     public ResponseEntity<Response> createPost(@RequestParam(value = "post-image",
-                                                        required = false) MultipartFile file,
-                                           @RequestParam(value = "post-text",
+                                                    required = false) MultipartFile[] files,
+                                               @RequestParam(value = "post-text",
                                                        required = false) PostRequestDTO requestDTO) throws IOException {
-        return ResponseEntity.ok(postService.createPost(file, requestDTO));
+        return ResponseEntity.ok(postService.createPost(files, requestDTO));
     }
+
     @PutMapping("/edit-post/{postId}")
     public ResponseEntity<Response> editPost(@PathVariable("postId") Long postId,
                                              @RequestParam(value = "post-image", required = false) MultipartFile file,
                                              @RequestParam(value = "post-text", required = false) PostRequestDTO requestDTO) {
         return postService.editPost(postId, file, requestDTO);
+    }
+
+    @PutMapping("/edit-post2/{postId}")
+    public ResponseEntity<Response> editPost2(@PathVariable("postId") Long postId,
+                                             @RequestParam(value = "post-image", required = false) MultipartFile[] files,
+                                             @RequestParam(value = "post-text", required = false) PostRequestDTO requestDTO) {
+        return ResponseEntity.ok(postService.editPost2(postId, files, requestDTO));
     }
 
     @GetMapping("/timeline")
