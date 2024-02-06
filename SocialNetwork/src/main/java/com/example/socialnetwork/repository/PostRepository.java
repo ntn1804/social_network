@@ -10,6 +10,15 @@ import java.util.Date;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-    List<Post> findAllByUserIdIn(List<Long> userIdList);
+    @Query(value = "SELECT * FROM `social-network`.post\n" +
+            "WHERE post.is_deleted = 0\n" +
+            "AND post.user_id = ?1", nativeQuery = true)
     List<Post> findAllByUserId(Long userId);
+
+    @Query(value = "SELECT * FROM `social-network`.post\n" +
+            "WHERE (post.privacy = 'public' OR post.privacy = 'friends')\n" +
+            "AND post.is_deleted = 0\n" +
+            "AND post.user_id = ?1", nativeQuery = true)
+    List<Post> findAllByFriendId(Long userId);
+
 }

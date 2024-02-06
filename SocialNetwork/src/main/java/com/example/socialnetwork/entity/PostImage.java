@@ -1,5 +1,6 @@
 package com.example.socialnetwork.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,13 +16,12 @@ public class PostImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
     private String fileName;
-
-    @Column
     private String filePath;
+    private int isDeleted;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "post_id")
+    @JsonBackReference
     private Post post;
 }

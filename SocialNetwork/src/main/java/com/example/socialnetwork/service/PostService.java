@@ -1,6 +1,8 @@
 package com.example.socialnetwork.service;
 
+import com.example.socialnetwork.dto.request.PostPrivacyDTO;
 import com.example.socialnetwork.dto.request.PostRequestDTO;
+import com.example.socialnetwork.dto.response.PostResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.dto.response.ShowAllPostResponseDTO;
 import com.example.socialnetwork.entity.Post;
@@ -13,10 +15,9 @@ import java.util.List;
 public interface PostService {
     Response createPost(MultipartFile[] files, PostRequestDTO requestDTO) throws IOException;
 
-    ResponseEntity<Response> editPost(Long postId, MultipartFile file, PostRequestDTO requestDTO);
+    Response editPost(Long postId, MultipartFile[] files, PostRequestDTO requestDTO, PostPrivacyDTO privacyDTO);
 
-    Response editPost2(Long postId, MultipartFile[] files, PostRequestDTO requestDTO);
+    List<PostResponseDTO> getAllPosts();
 
-    ResponseEntity<List<ShowAllPostResponseDTO>> getAllPosts();
-
+    PostResponseDTO getPostById(Long postId);
 }

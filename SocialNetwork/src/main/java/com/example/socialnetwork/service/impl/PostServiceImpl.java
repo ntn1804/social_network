@@ -1,9 +1,12 @@
 package com.example.socialnetwork.service.impl;
 
 import com.example.socialnetwork.config.UserInfoUserDetails;
+import com.example.socialnetwork.dto.request.PostPrivacyDTO;
 import com.example.socialnetwork.dto.request.PostRequestDTO;
+import com.example.socialnetwork.dto.response.PostImageDTO;
+import com.example.socialnetwork.dto.response.PostResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
-import com.example.socialnetwork.dto.response.ShowAllPostResponseDTO;
+import com.example.socialnetwork.dto.response.UserDTO;
 import com.example.socialnetwork.entity.Friend;
 import com.example.socialnetwork.entity.Post;
 import com.example.socialnetwork.entity.PostImage;
@@ -24,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,7 +35,7 @@ import java.util.*;
 @Service
 public class PostServiceImpl implements PostService {
 
-//  private final String folderPath = "C:\\Users\\MY PC\\Desktop\\Dev9\\MyFiles\\Post\\";
+    //  private final String folderPath = "C:\\Users\\MY PC\\Desktop\\Dev9\\MyFiles\\Post\\";
     private final String folderPath = "C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\Post\\";
 
     @Autowired
@@ -63,15 +65,7 @@ public class PostServiceImpl implements PostService {
         }
 
         if (files != null) {
-            Arrays.stream(files).forEach(file -> {
-                if (file.getContentType() == null) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose image file(s)");
-                }
-                MediaType mediaType = MediaType.parseMediaType(file.getContentType());
-                if (!mediaType.getType().equals("image")) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose image file(s)");
-                }
-            });
+            checkFileType(files);
 
             Post post;
             if (requestDTO != null) {
@@ -79,20 +73,24 @@ public class PostServiceImpl implements PostService {
                         .user(optionalUser.get())
                         .text(requestDTO.getText())
                         .privacy("public")
+                        .isDeleted(0)
                         .build();
 
             } else {
                 post = Post.builder()
                         .user(optionalUser.get())
                         .privacy("public")
+                        .isDeleted(0)
                         .build();
             }
-            savePostAndPostImage(files, post);
+            postRepository.save(post);
+            savePostImage(files, post);
         } else {
             Post post = Post.builder()
                     .user(optionalUser.get())
                     .text(requestDTO.getText())
                     .privacy("public")
+                    .isDeleted(0)
                     .build();
             postRepository.save(post);
         }
@@ -101,9 +99,7 @@ public class PostServiceImpl implements PostService {
                 .build();
     }
 
-    private void savePostAndPostImage(MultipartFile[] files, Post post) {
-        postRepository.save(post);
-
+    private void savePostImage(MultipartFile[] files, Post post) {
         List<PostImage> postImageList = new ArrayList<>();
         Arrays.stream(files).forEach(file -> {
             UUID uuid = UUID.randomUUID();
@@ -118,6 +114,7 @@ public class PostServiceImpl implements PostService {
             PostImage postImage = PostImage.builder()
                     .filePath("C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\Post\\" + fileName)
                     .fileName(fileName)
+                    .isDeleted(0)
                     .post(post)
                     .build();
             postImageList.add(postImage);
@@ -126,72 +123,181 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ResponseEntity<Response> editPost(Long postId, MultipartFile file, PostRequestDTO requestDTO) {
-        String filePath = null;
-        if (file != null) {
-            filePath = folderPath + file.getOriginalFilename();
+    public Response editPost(Long postId, MultipartFile[] files, PostRequestDTO requestDTO, PostPrivacyDTO privacyDTO) {
+
+        // check files = null & content = null.
+        if (files == null && requestDTO == null) {
+            return null;
         }
 
-        if (file == null && requestDTO == null) {
-            return ResponseEntity.ok(Response.builder()
-                    .responseMessage("Post is empty")
+        // get old post.
+        Optional<Post> optionalExistingPost = postRepository.findById(postId);
+
+        if (optionalExistingPost.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+        }
+        Post editPost = optionalExistingPost.get();
+
+        // get old post image list -> if exists then soft delete.
+        List<PostImage> editPostImageList = postImageRepository.findAllByPostId(postId);
+        if (editPostImageList != null) {
+            editPostImageList.forEach(postImage -> postImage.setIsDeleted(1));
+        }
+
+        // files != null -> save post image.
+        if (files != null) {
+            checkFileType(files);
+            savePostImage(files, editPost);
+
+            // case 1: files != null & content != null
+            if (requestDTO != null) {
+                editPost.setText(requestDTO.getText());
+
+                // case 2: files != null & content = null -> delete post content.
+            } else {
+                editPost.setText(null);
+            }
+
+            // case 3: files = null & content != null
+        } else {
+            editPost.setText(requestDTO.getText());
+        }
+
+        if (privacyDTO != null) {
+            editPost.setPrivacy(privacyDTO.getPrivacy());
+        }
+        postRepository.save(editPost);
+
+        return Response.builder()
+                .responseMessage("Edited post successfully")
+                .build();
+    }
+
+    private void checkFileType(MultipartFile[] files) {
+        Arrays.stream(files).forEach(file -> {
+            if (file.getContentType() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose image file(s)");
+            }
+            MediaType mediaType = MediaType.parseMediaType(file.getContentType());
+            if (!mediaType.getType().equals("image")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose image file(s)");
+            }
+        });
+    }
+
+    @Override
+    public List<PostResponseDTO> getAllPosts() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+
+        User user = optionalUser.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        List<Long> friendIds = friendRepository.findFriendIdsByUserId(user.getId());
+        friendIds.remove(user.getId());
+
+        List<Post> allFriendPostList = new ArrayList<>();
+        for (Long id : friendIds) {
+            List<Post> friendPostList = postRepository.findAllByFriendId(id);
+            allFriendPostList.addAll(friendPostList);
+        }
+        List<Post> userPostList = postRepository.findAllByUserId(user.getId());
+        allFriendPostList.addAll(userPostList);
+
+        // sort post by LocalTimeDate
+        allFriendPostList.sort(Post::compareTo);
+
+        List<PostResponseDTO> postResponseDTOList = new ArrayList<>();
+
+        for (Post post : allFriendPostList) {
+            List<PostImage> postImageList = postImageRepository.findAllByPostId(post.getId());
+            List<PostImageDTO> postImageDTOList = convertPostImageToPostImageDTO(postImageList);
+            PostResponseDTO postResponseDTO = PostResponseDTO.builder()
+                    .user(UserDTO.builder()
+                            .id(post.getUser().getId())
+                            .username(post.getUser().getUsername())
+                            .build())
+                    .text(post.getText())
+                    .postImageDTOList(postImageDTOList)
+                    .build();
+            postResponseDTOList.add(postResponseDTO);
+        }
+        return postResponseDTOList;
+    }
+
+    public List<PostImageDTO> convertPostImageToPostImageDTO(List<PostImage> postImageList) {
+        List<PostImageDTO> postImageDTOList = new ArrayList<>();
+
+        for (PostImage postImage : postImageList) {
+            postImageDTOList.add(PostImageDTO.builder()
+                    .filePath(postImage.getFilePath() + ".jpg")
+                    .build());
+        }
+        return postImageDTOList;
+    }
+
+    @Override
+    public PostResponseDTO getPostById(Long postId) {
+        PostResponseDTO result = null;
+        // get userId
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+
+        Long userId = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"))
+                .getId();
+
+        // base on postId -> get friendId
+        Optional<Post> optionalPost = postRepository.findById(postId);
+        Post post = optionalPost
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+        Long friendId = post.getUser().getId();
+
+        if (userId.equals(friendId)) {
+            if (post.getIsDeleted() == 1) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post is deleted");
+
+            } else {
+                result = getPostResponseDTO(postId, post, friendId);
+            }
+
+        } else {
+            Friend friend = friendRepository.findByUserIdAndFriendId2(userId, friendId);
+            if (friend == null) {
+                if (!post.getPrivacy().equals("public")) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not friends");
+                } else {
+                    result = getPostResponseDTO(postId, post, friendId);
+                }
+
+            } else if (post.getIsDeleted() == 1 || post.getPrivacy().equals("only me")) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+
+            } else if (post.getIsDeleted() == 0) {
+                result = getPostResponseDTO(postId, post, friendId);
+            }
+        }
+        return result;
+    }
+
+    private PostResponseDTO getPostResponseDTO(Long postId, Post post, Long friendId) {
+        List<PostImage> postImageList = postImageRepository.findAllByPostId(postId);
+        List<PostImageDTO> postImageDTOList = new ArrayList<>();
+
+        for (PostImage postImage : postImageList) {
+            postImageDTOList.add(PostImageDTO.builder()
+                    .filePath(postImage.getFilePath() + ".jpg")
                     .build());
         }
 
-        // find old post by ID
-        if (postId != null) {
-            Optional<Post> oldPost = postRepository.findById(postId);
-            if (oldPost.isPresent()) {
-                // set new attribute (image + text)
-                Post newPost = oldPost.get();
-                newPost.setText(requestDTO != null ? requestDTO.getText() : null);
-//                newPost.setImage(file != null ? file.getOriginalFilename() : null);
-//                newPost.setFilePath(file != null ? filePath : null);
-                postRepository.save(newPost);
-            }
-        }
-        return ResponseEntity.ok(Response.builder()
-                .responseMessage("Edited post successfully")
-                .build());
+        return PostResponseDTO.builder()
+                .user(UserDTO.builder()
+                        .id(friendId)
+                        .username(post.getUser().getUsername())
+                        .build())
+                .text(post.getText())
+                .postImageDTOList(postImageDTOList)
+                .build();
     }
 
-    @Override
-    public Response editPost2(Long postId, MultipartFile[] files, PostRequestDTO requestDTO) {
-        Optional<Post> existingPost = postRepository.findById(postId);
-
-
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<List<ShowAllPostResponseDTO>> getAllPosts() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
-
-        if (user.isPresent()) {
-            Long userId = user.get().getId();
-            List<Friend> friendList = friendRepository.findAll();
-            List<Long> usersFriendsId = new ArrayList<>();
-
-            for (Friend userFriends : friendList) {
-                if (userFriends.getRequestStatus().equals("Accepted")) {
-                    if (userFriends.getFriend().getId().equals(userId)) {
-                        usersFriendsId.add(userFriends.getUser().getId());
-                    }
-                    if (userFriends.getUser().getId().equals(userId)) {
-                        usersFriendsId.add(userFriends.getFriend().getId());
-                    }
-                }
-            }
-            usersFriendsId.add(userId);
-
-            List<Post> timelinePost = postRepository.findAllByUserIdIn(usersFriendsId);
-
-            Collections.sort(timelinePost);
-
-            return ResponseEntity.ok(postMapper.convertPostToShowAllPostResponseDTO(timelinePost));
-        }
-        return null;
-    }
 }

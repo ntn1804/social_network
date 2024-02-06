@@ -107,12 +107,12 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = userRepository.findByEmail(token.getEmail());
-            if (Objects.nonNull(user)) {
-                user.setPassword(passwordEncoder.encode(requestDTO.getNewPassword()));
-                userRepository.save(user);
-            } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User does not exist");
-            }
+        if (Objects.nonNull(user)) {
+            user.setPassword(passwordEncoder.encode(requestDTO.getNewPassword()));
+            userRepository.save(user);
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User does not exist");
+        }
         return Response.builder()
                 .responseMessage("Reset password successfully")
                 .build();
@@ -122,14 +122,10 @@ public class UserServiceImpl implements UserService {
     public Response removeUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
 
-        if (user.isPresent()) {
-            Long userId = user.get().getId();
-            userRepository.deleteById(userId);
-        } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsuccessfully removed user");
-        }
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsuccessfully removed user"));
+        userRepository.deleteById(user.getId());
 
         return Response.builder()
                 .responseMessage("Successfully removed user")

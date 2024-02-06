@@ -1,6 +1,8 @@
 package com.example.socialnetwork.controller;
 
+import com.example.socialnetwork.dto.request.PostPrivacyDTO;
 import com.example.socialnetwork.dto.request.PostRequestDTO;
+import com.example.socialnetwork.dto.response.PostResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.dto.response.ShowAllPostResponseDTO;
 import com.example.socialnetwork.entity.Post;
@@ -30,20 +32,19 @@ public class PostController {
 
     @PutMapping("/edit-post/{postId}")
     public ResponseEntity<Response> editPost(@PathVariable("postId") Long postId,
-                                             @RequestParam(value = "post-image", required = false) MultipartFile file,
-                                             @RequestParam(value = "post-text", required = false) PostRequestDTO requestDTO) {
-        return postService.editPost(postId, file, requestDTO);
+                                             @RequestParam(value = "post-image", required = false) MultipartFile[] files,
+                                             @RequestParam(value = "post-text", required = false) PostRequestDTO requestDTO,
+                                              @RequestParam(value = "post-privacy", required = false) PostPrivacyDTO privacyDTO) {
+        return ResponseEntity.ok(postService.editPost(postId, files, requestDTO, privacyDTO));
     }
 
-    @PutMapping("/edit-post2/{postId}")
-    public ResponseEntity<Response> editPost2(@PathVariable("postId") Long postId,
-                                             @RequestParam(value = "post-image", required = false) MultipartFile[] files,
-                                             @RequestParam(value = "post-text", required = false) PostRequestDTO requestDTO) {
-        return ResponseEntity.ok(postService.editPost2(postId, files, requestDTO));
+    @GetMapping("/get-post/{postId}")
+    public ResponseEntity<PostResponseDTO> getPost(@PathVariable("postId") Long postId) {
+        return ResponseEntity.ok(postService.getPostById(postId));
     }
 
     @GetMapping("/timeline")
-    public ResponseEntity<List<ShowAllPostResponseDTO>> getAllPosts(){
-        return postService.getAllPosts();
+    public ResponseEntity<List<PostResponseDTO>> getAllPosts(){
+        return ResponseEntity.ok(postService.getAllPosts());
     }
 }

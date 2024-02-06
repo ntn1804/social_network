@@ -1,5 +1,6 @@
 package com.example.socialnetwork.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.boot.context.properties.bind.DefaultValue;
@@ -29,7 +30,7 @@ public class Post implements Comparable<Post> {
     private String text;
 
     @Column
-    private String privacy = "public";
+    private String privacy;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -41,12 +42,15 @@ public class Post implements Comparable<Post> {
     @OneToMany(mappedBy = "post")
     private List<Comment> commentList;
 
-    @OneToMany(mappedBy = "post")
+    @OneToMany(mappedBy = "post", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Column(nullable = true)
     private List<PostImage> postImageList;
 
     @Column
     @CreatedDate
     private LocalDateTime createdDate;
+
+    private int isDeleted;
 
     @Override
     public int compareTo(Post o) {

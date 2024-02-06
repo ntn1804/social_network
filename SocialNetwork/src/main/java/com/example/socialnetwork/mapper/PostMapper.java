@@ -15,7 +15,7 @@ public class PostMapper {
                 .forEach(post -> responseDTOS.add(ShowAllPostResponseDTO.builder()
                                 .id(post.getId())
                                 .text(post.getText())
-                                .image(post.getImage())
+//                                .image(post.getImage())
                                 .userId(post.getUser().getId())
                         .build()));
         return responseDTOS;
