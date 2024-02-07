@@ -43,6 +43,11 @@ public class PostController {
         return ResponseEntity.ok(postService.getPostById(postId));
     }
 
+    @DeleteMapping("/delete-post/{postId}")
+    public ResponseEntity<Response> deletePost(@PathVariable("postId") Long postId) {
+        return ResponseEntity.ok(postService.deletePost(postId));
+    }
+
     @GetMapping("/timeline")
     public ResponseEntity<List<PostResponseDTO>> getAllPosts(){
         return ResponseEntity.ok(postService.getAllPosts());

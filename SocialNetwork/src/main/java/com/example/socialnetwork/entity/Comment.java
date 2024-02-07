@@ -35,4 +35,6 @@ public class Comment {
     @Column
     @CreatedDate
     private LocalDateTime createdDate;
+
+    private int isDeleted;
 }

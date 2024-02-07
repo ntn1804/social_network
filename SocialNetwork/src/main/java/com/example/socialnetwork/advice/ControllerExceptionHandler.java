@@ -25,7 +25,6 @@ public class ControllerExceptionHandler {
         });
         return errorMap;
     }
-
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ResponseStatusException.class)
     public String handleResponseStatusException(ResponseStatusException exception) {

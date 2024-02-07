@@ -35,4 +35,6 @@ public class React {
     @Column
     @CreatedDate
     private LocalDateTime createdDate;
+
+    private int isDeleted;
 }

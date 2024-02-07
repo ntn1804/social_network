@@ -68,6 +68,7 @@ public class ReactServiceImpl implements ReactService {
                         .user(user.orElse(null))
                         .post(post.orElse(null))
                         .createdDate(LocalDateTime.now())
+                        .isDeleted(0)
                         .build());
                 return ResponseEntity.ok(Response.builder()
 //                        .statusCode(200)

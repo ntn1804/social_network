@@ -43,7 +43,7 @@ public class Post implements Comparable<Post> {
     private List<Comment> commentList;
 
     @OneToMany(mappedBy = "post", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @Column(nullable = true)
+    @Column
     private List<PostImage> postImageList;
 
     @Column

@@ -20,4 +20,6 @@ public interface PostService {
     List<PostResponseDTO> getAllPosts();
 
     PostResponseDTO getPostById(Long postId);
+
+    Response deletePost(Long postId);
 }

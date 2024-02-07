@@ -7,20 +7,12 @@ import com.example.socialnetwork.dto.response.PostImageDTO;
 import com.example.socialnetwork.dto.response.PostResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.dto.response.UserDTO;
-import com.example.socialnetwork.entity.Friend;
-import com.example.socialnetwork.entity.Post;
-import com.example.socialnetwork.entity.PostImage;
-import com.example.socialnetwork.entity.User;
-import com.example.socialnetwork.mapper.PostMapper;
-import com.example.socialnetwork.repository.FriendRepository;
-import com.example.socialnetwork.repository.PostImageRepository;
-import com.example.socialnetwork.repository.PostRepository;
-import com.example.socialnetwork.repository.UserRepository;
+import com.example.socialnetwork.entity.*;
+import com.example.socialnetwork.repository.*;
 import com.example.socialnetwork.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -45,9 +37,11 @@ public class PostServiceImpl implements PostService {
     @Autowired
     private FriendRepository friendRepository;
     @Autowired
-    private PostMapper postMapper;
-    @Autowired
     private PostImageRepository postImageRepository;
+    @Autowired
+    private CommentRepository commentRepository;
+    @Autowired
+    private ReactRepository reactRepository;
 
     @Override
     public Response createPost(MultipartFile[] files, PostRequestDTO requestDTO) {
@@ -278,6 +272,55 @@ public class PostServiceImpl implements PostService {
             }
         }
         return result;
+    }
+
+    @Override
+    public Response deletePost(Long postId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        Optional<Post> optionalPost = postRepository.findById(postId);
+        Post post = optionalPost.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not your post");
+        }
+
+        // get comment -> delete if exists
+        List<Comment> existComments = commentRepository.findAllByPostId(postId);
+        if (existComments != null) {
+            for (Comment comment : existComments) {
+                comment.setIsDeleted(1);
+            }
+            commentRepository.saveAll(existComments);
+        }
+
+        // get react -> delete if exists
+        List<React> existReacts = reactRepository.findAllByPostId(postId);
+        if (existReacts != null) {
+            for (React react : existReacts) {
+                react.setIsDeleted(1);
+            }
+            reactRepository.saveAll(existReacts);
+        }
+
+        // get post image -> delete if exists
+        List<PostImage> existPostImages = postImageRepository.findAllByPostId(postId);
+        if (existPostImages != null) {
+            for (PostImage postImage : existPostImages) {
+                postImage.setIsDeleted(1);
+            }
+            postImageRepository.saveAll(existPostImages);
+        }
+
+        post.setIsDeleted(1);
+        postRepository.save(post);
+
+        return Response.builder()
+                .responseMessage("Post deleted successfully")
+                .build();
     }
 
     private PostResponseDTO getPostResponseDTO(Long postId, Post post, Long friendId) {

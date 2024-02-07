@@ -8,5 +8,6 @@ import lombok.*;
 @Setter
 @Builder
 public class CommentResponseDTO {
+    private UserDTO user;
     private String content;
 }

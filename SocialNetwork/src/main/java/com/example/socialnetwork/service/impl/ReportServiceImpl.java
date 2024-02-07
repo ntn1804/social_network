@@ -83,7 +83,7 @@ public class ReportServiceImpl implements ReportService {
         List<React> recentReacts = new ArrayList<>();
 
         if (user.isPresent()) {
-            List<React> reactList = reactRepository.findByUserId(user.get().getId());
+            List<React> reactList = reactRepository.findAllByUserId(user.get().getId());
 
             for (React react : reactList) {
                 if (react.getCreatedDate().isAfter(LocalDateTime.now().minusDays(7))) {
@@ -103,7 +103,7 @@ public class ReportServiceImpl implements ReportService {
         List<Comment> recentComments = new ArrayList<>();
 
         if (user.isPresent()) {
-            List<Comment> commentList = commentRepository.findByUserId(user.get().getId());
+            List<Comment> commentList = commentRepository.findAllByUserId(user.get().getId());
 
             for (Comment comment : commentList) {
                 if (comment.getCreatedDate().isAfter(LocalDateTime.now().minusDays(7))) {
