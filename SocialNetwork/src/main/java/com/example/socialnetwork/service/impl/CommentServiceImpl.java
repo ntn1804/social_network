@@ -155,4 +155,36 @@ public class CommentServiceImpl implements CommentService {
         }
         return commentResponseDTOList;
     }
+
+    @Override
+    public Response deleteComment(Long commentId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        Optional<Comment> optionalComment = commentRepository.findById(commentId);
+
+        Comment comment = optionalComment
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found"));
+
+        if (comment.getIsDeleted() == 1) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment is deleted");
+        }
+
+        if (comment.getPost().getIsDeleted() == 1) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post is deleted");
+        }
+
+        if (comment.getUser().getId().equals(user.getId())) {
+            commentRepository.delete(comment);
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "It's not your comment");
+        }
+
+        return Response.builder()
+                .responseMessage("Deleted comment successfully")
+                .build();
+    }
 }

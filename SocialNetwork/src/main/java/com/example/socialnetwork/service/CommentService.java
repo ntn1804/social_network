@@ -14,4 +14,6 @@ public interface CommentService {
     Response editComment(Long commentId, CommentRequestDTO requestDTO);
 
     List<CommentResponseDTO> getCommentPost(Long postId);
+
+    Response deleteComment(Long commentId);
 }

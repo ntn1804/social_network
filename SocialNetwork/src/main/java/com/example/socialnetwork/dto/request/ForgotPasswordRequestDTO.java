@@ -15,7 +15,4 @@ public class ForgotPasswordRequestDTO {
 
     @Email(message = "Invalid email")
     private String email;
-
-    @NotBlank(message = "Invalid username")
-    private String username;
 }

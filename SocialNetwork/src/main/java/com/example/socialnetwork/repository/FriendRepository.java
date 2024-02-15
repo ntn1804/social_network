@@ -8,6 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface FriendRepository extends JpaRepository<Friend, Long> {
+    @Query(value = "SELECT * FROM `social-network`.friend\n" +
+            "WHERE (friend.friend_id = ?1 OR friend.user_id = ?1)\n" +
+            "AND (friend.friend_id = ?2 OR friend.user_id = ?2)", nativeQuery = true)
     Friend findByUserIdAndFriendId(Long id, Long friendId);
 
     @Query(value = "SELECT * FROM `social-network`.friend \n" +
@@ -28,5 +31,16 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
             "WHERE (friend.friend_id = ?1 OR friend.user_id = ?1) \n" +
             "AND (friend.friend_id = ?2 OR friend.user_id = ?2) \n" +
             "AND friend.request_status = 'Accepted'", nativeQuery = true)
-    Friend findByUserIdAndFriendId2(Long id, Long friendId);
+    Friend findByUserIdAndFriendId2(Long userId, Long friendId);
+
+    @Query(value = "SELECT friend_id FROM `social-network`.friend\n" +
+            "WHERE (friend.friend_id = ?1 OR friend.user_id = ?1) \n" +
+            "AND friend.request_status = 'Pending'\n" +
+            "UNION\n" +
+            "SELECT user_id FROM `social-network`.friend\n" +
+            "WHERE (friend.friend_id = ?1 OR friend.user_id = ?1) \n" +
+            "AND friend.request_status = 'Pending'", nativeQuery = true)
+    List<Long> findFriendRequestIdsByUserId(Long userId);
+
+
 }

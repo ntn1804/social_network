@@ -20,11 +20,11 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Map<String, String> handleInvalidArgument(MethodArgumentNotValidException exception) {
         Map<String, String> errorMap = new HashMap<>();
-        exception.getBindingResult().getFieldErrors().forEach(error -> {
-            errorMap.put(error.getField(), error.getDefaultMessage());
-        });
+        exception.getBindingResult().getFieldErrors()
+                .forEach(error -> errorMap.put(error.getField(), error.getDefaultMessage()));
         return errorMap;
     }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ResponseStatusException.class)
     public String handleResponseStatusException(ResponseStatusException exception) {
@@ -37,13 +37,11 @@ public class ControllerExceptionHandler {
         return "error: expected format dd/MM/yyyy";
     }
 
-
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MultipartException.class)
     public String handleMultipartException() {
         return "error: please choose a file";
     }
-
 
     //chua bat dc invalid token
     @ResponseStatus(HttpStatus.BAD_REQUEST)

@@ -66,12 +66,6 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    public static boolean patternEmailMatches(String emailAddress, String regexPattern) {
-        return Pattern.compile(regexPattern)
-                .matcher(emailAddress)
-                .matches();
-    }
-
     @Override
     public ForgotPasswordResponseDTO forgotPassword(ForgotPasswordRequestDTO requestDTO) {
         User existingUser = userRepository.findByEmail(requestDTO.getEmail());
@@ -85,6 +79,11 @@ public class UserServiceImpl implements UserService {
     }
 
     public String generateToken(ForgotPasswordRequestDTO requestDTO) {
+        User user = userRepository.findByEmail(requestDTO.getEmail());
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email does not exist");
+        }
+
         TokenResetPassword existingToken = passwordRepository.findByEmail(requestDTO.getEmail());
         if (existingToken != null) {
             passwordRepository.delete(existingToken);

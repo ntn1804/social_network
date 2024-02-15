@@ -1,6 +1,7 @@
 package com.example.socialnetwork.service.impl;
 
 import com.example.socialnetwork.config.UserInfoUserDetails;
+import com.example.socialnetwork.dto.response.FriendResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.Friend;
 import com.example.socialnetwork.entity.User;
@@ -8,11 +9,13 @@ import com.example.socialnetwork.repository.FriendRepository;
 import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.FriendService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -135,37 +138,46 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
-    public ResponseEntity<Response> deleteFriendRequest(Long friendId) {
+    public Response deleteFriend(Long friendId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
-        if (friendId != null) {
-            Friend friend = friendRepository.findByUserIdAndFriendId(friendId, user.get().getId());
-            Friend friend1 = friendRepository.findByUserIdAndFriendId(user.get().getId(), friendId);
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-            if (friend1 != null) {
-                friendRepository.delete(friend1);
-                return ResponseEntity.ok(Response.builder()
-//                        .statusCode(200)
-                        .responseMessage("Delete friend request successfully")
-                        .build());
-            }
-            if (friend != null) {
-                if (friend.getRequestStatus().equals("Accept")) {
-                    friendRepository.delete(friend);
-                    return ResponseEntity.ok(Response.builder()
-//                            .statusCode(200)
-                            .responseMessage("Delete friend successfully")
-                            .build());
-                } else if (friend.getRequestStatus().equals("Pending")) {
-                    friendRepository.delete(friend);
-                }
-            }
+        Friend friend = friendRepository.findByUserIdAndFriendId(user.getId(),friendId);
+        if (friend == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "You are not friends yet");
         }
-        return ResponseEntity.ok(Response.builder()
-//                .statusCode(200)
-                .responseMessage("Delete friend request successfully")
-                .build());
+        friendRepository.delete(friend);
+
+        return Response.builder()
+                .responseMessage("Deleted friend successfully")
+                .build();
+    }
+
+    @Override
+    public List<FriendResponseDTO> getFriendRequest() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        List<Long> friendIds = friendRepository.findFriendRequestIdsByUserId(user.getId());
+        friendIds.remove(user.getId());
+
+        List<FriendResponseDTO> friendResponseDTOList = new ArrayList<>();
+        for (Long friendId : friendIds) {
+            Optional<User> friend = userRepository.findById(friendId);
+            FriendResponseDTO friendResponseDTO = FriendResponseDTO.builder()
+                    .friendId(friendId)
+                    .friendUsername(friend.get().getUsername())
+                    .build();
+            friendResponseDTOList.add(friendResponseDTO);
+        }
+        return friendResponseDTOList;
     }
 }

@@ -1,11 +1,14 @@
 package com.example.socialnetwork.controller;
 
 import com.example.socialnetwork.dto.request.FriendRequestDTO;
+import com.example.socialnetwork.dto.response.FriendResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.service.FriendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/friends")
@@ -24,8 +27,13 @@ public class FriendController {
         return friendService.confirmFriendRequest(friendId);
     }
 
+    @GetMapping("/get-request")
+    public ResponseEntity<List<FriendResponseDTO>> getFriendRequest(){
+        return ResponseEntity.ok(friendService.getFriendRequest());
+    }
+
     @DeleteMapping ("/delete-request/{friendId}")
     public ResponseEntity<Response> deleteFriendRequest(@PathVariable ("friendId") Long friendId){
-        return friendService.deleteFriendRequest(friendId);
+        return ResponseEntity.ok(friendService.deleteFriend(friendId));
     }
 }
