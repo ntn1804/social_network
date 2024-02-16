@@ -8,8 +8,8 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 public interface FriendService {
-    ResponseEntity<Response> sendFriendRequest(Long friendId);
-    ResponseEntity<Response> confirmFriendRequest(Long friendId);
+    Response sendFriendRequest(Long friendId);
+    Response confirmFriendRequest(Long friendRequestId);
     Response deleteFriend(Long friendId);
     List<FriendResponseDTO> getFriendRequest();
 }

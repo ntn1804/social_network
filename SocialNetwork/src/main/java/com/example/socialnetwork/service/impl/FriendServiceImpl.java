@@ -10,15 +10,15 @@ import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.FriendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class FriendServiceImpl implements FriendService {
@@ -29,131 +29,87 @@ public class FriendServiceImpl implements FriendService {
     private FriendRepository friendRepository;
 
     @Override
-    public ResponseEntity<Response> sendFriendRequest(Long friendId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
+    public Response sendFriendRequest(Long friendId) {
+        Response response = Response.builder().build();
 
-        List<User> userList = userRepository.findAll();
-        List<Long> userIdList = new ArrayList<>();
-
-        for (User id : userList) {
-            userIdList.add(id.getId());
-        }
-
-        if (!userIdList.contains(friendId)) {
-            return ResponseEntity.badRequest().body(Response.builder()
-                    .responseMessage("User does not exist")
-                    .build());
-        }
-
-        if (friendId != null) {
-            Optional<User> usersFriend = userRepository.findById(friendId);
-            Friend existingFriendRequest = friendRepository.findByUserIdAndFriendId(user.get().getId(), friendId);
-            Friend friend = friendRepository.findByUserIdAndFriendId(friendId, user.get().getId());
-
-            if (friend != null) {
-                if (friend.getRequestStatus().equals("Accepted")) {
-                    return ResponseEntity.badRequest().body(Response.builder()
-//                            .statusCode(400)
-                            .responseMessage("You are already friends")
-                            .build());
-                } else if (friend.getRequestStatus().equals("Pending")) {
-                    friend.setRequestStatus("Accepted");
-                    friendRepository.save(friend);
-                    return ResponseEntity.ok(Response.builder()
-//                            .statusCode(200)
-                            .responseMessage("Confirm friend request successfully")
-                            .build());
-                }
-            }
-
-            if (existingFriendRequest != null) {
-                return ResponseEntity.badRequest().body(Response.builder()
-//                        .statusCode(400)
-                        .responseMessage("You already sent a friend request")
-                        .build());
-            } else {
-                if (Objects.equals(user.get().getId(), friendId)) {
-                    return ResponseEntity.badRequest().body(Response.builder()
-//                            .statusCode(400)
-                            .responseMessage("Can not send friend request to yourself")
-                            .build());
-                } else {
-                    Friend newFriendRequest = Friend.builder()
-                            .user(user.orElse(null))
-                            .friend(usersFriend.orElse(null))
-                            .requestStatus("Pending")
-                            .build();
-                    friendRepository.save(newFriendRequest);
-                }
-            }
-        }
-        return ResponseEntity.ok(Response.builder()
-//                .statusCode(200)
-                .responseMessage("Sent friend request successfully")
-                .build());
-    }
-
-    @Override
-    public ResponseEntity<Response> confirmFriendRequest(Long friendId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
-
-        if (friendId != null) {
-            Friend friend = friendRepository.findByUserIdAndFriendId(friendId, user.get().getId());
-            Friend friend1 = friendRepository.findByUserIdAndFriendId(user.get().getId(), friendId);
-
-            if (friend1 != null) {
-                return ResponseEntity.badRequest().body(Response.builder()
-//                        .statusCode(400)
-                        .responseMessage("Can not confirm friend request by yourself")
-                        .build());
-            }
-
-            if (friend != null) {
-                if (friend.getRequestStatus().equals("Pending")) {
-                    friend.setRequestStatus("Accepted");
-                    friend.setCreatedDate(LocalDateTime.now());
-                    friendRepository.save(friend);
-
-                } else if (friend.getRequestStatus().equals("Accepted")) {
-                    return ResponseEntity.badRequest().body(Response.builder()
-//                            .statusCode(400)
-                            .responseMessage("You are already friends")
-                            .build());
-                }
-            } else {
-                return ResponseEntity.badRequest().body(Response.builder()
-//                        .statusCode(400)
-                        .responseMessage("You have not sent friend request")
-                        .build());
-            }
-        }
-        return ResponseEntity.ok(Response.builder()
-//                .statusCode(200)
-                .responseMessage("Confirm friend request successfully")
-                .build());
-    }
-
-    @Override
-    public Response deleteFriend(Long friendId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
-
         User user = optionalUser
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        Friend friend = friendRepository.findByUserIdAndFriendId(user.getId(),friendId);
-        if (friend == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "You are not friends yet");
-        }
-        friendRepository.delete(friend);
+        Optional<User> optionalUserFriend = userRepository.findById(friendId);
+        User userFriend = optionalUserFriend
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
+        // send friend request to yourself
+        if (user.getId().equals(friendId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can not send friend request to yourself");
+        }
+
+        Friend friendRequest = friendRepository.findByUserIdAndFriendId(user.getId(), userFriend.getId());
+        if (friendRequest != null) {
+
+            // friends already
+            if (friendRequest.getRequestStatus().equals("Accepted")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are friends already");
+            }
+
+            // request status = pending
+            if (friendRequest.getRequestStatus().equals("Pending")
+                    && user.getId().equals(friendRequest.getUser().getId())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You already sent friend request");
+            }
+
+            // user send friend request && friend send friend request back.
+            if (friendRequest.getRequestStatus().equals("Pending")
+                    && user.getId().equals(friendRequest.getFriend().getId())) {
+                friendRequest.setRequestStatus("Accepted");
+                friendRepository.save(friendRequest);
+                response.setResponseMessage("Confirm friend request successfully");
+            }
+        }
+
+        // friend = null
+        if (friendRequest == null) {
+            Friend newFriendRequest = Friend.builder()
+                    .user(user)
+                    .friend(userFriend)
+                    .requestStatus("Pending")
+                    .build();
+            friendRepository.save(newFriendRequest);
+            response.setResponseMessage("Sent friend request successfully");
+        }
+        return response;
+    }
+
+    @Override
+    public Response confirmFriendRequest(Long friendRequestId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        Optional<Friend> optionalFriendRequest = friendRepository.findById(friendRequestId);
+        Friend friendRequest = optionalFriendRequest
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Friend request not found"));
+
+        if (user.getId().equals(friendRequest.getUser().getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can not accept friend request by yourself");
+        }
+
+        if (friendRequest.getRequestStatus().equals("Accepted")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are friends already");
+        }
+
+        if (friendRequest.getRequestStatus().equals("Pending")) {
+            friendRequest.setRequestStatus("Accepted");
+            friendRequest.setCreatedDate(LocalDateTime.now());
+            friendRepository.save(friendRequest);
+        }
         return Response.builder()
-                .responseMessage("Deleted friend successfully")
+                .responseMessage("Confirm friend request successfully")
                 .build();
     }
 
@@ -179,5 +135,25 @@ public class FriendServiceImpl implements FriendService {
             friendResponseDTOList.add(friendResponseDTO);
         }
         return friendResponseDTOList;
+    }
+
+    @Override
+    public Response deleteFriend(Long friendId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        Friend friend = friendRepository.findByUserIdAndFriendId(user.getId(), friendId);
+        if (friend == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "You are not friends yet");
+        }
+        friendRepository.delete(friend);
+
+        return Response.builder()
+                .responseMessage("Deleted friend successfully")
+                .build();
     }
 }

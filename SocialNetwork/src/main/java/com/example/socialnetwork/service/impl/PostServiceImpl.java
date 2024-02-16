@@ -256,7 +256,7 @@ public class PostServiceImpl implements PostService {
             }
 
         } else {
-            Friend friend = friendRepository.findByUserIdAndFriendId2(userId, friendId);
+            Friend friend = friendRepository.findAcceptedFriendByUserIdAndFriendId(userId, friendId);
             if (friend == null) {
                 if (!post.getPrivacy().equals("public")) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not friends");

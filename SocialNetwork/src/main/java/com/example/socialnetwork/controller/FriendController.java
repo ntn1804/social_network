@@ -19,12 +19,12 @@ public class FriendController {
 
     @PostMapping("/friend-request/{friendId}")
     public ResponseEntity<Response> sendFriendRequest(@PathVariable ("friendId") Long friendId){
-        return friendService.sendFriendRequest(friendId);
+        return ResponseEntity.ok(friendService.sendFriendRequest(friendId));
     }
 
-    @PostMapping("/confirm-request/{friendId}")
-    public ResponseEntity<Response> confirmFriendRequest(@PathVariable ("friendId") Long friendId){
-        return friendService.confirmFriendRequest(friendId);
+    @PostMapping("/confirm-request/{friendRequestId}")
+    public ResponseEntity<Response> confirmFriendRequest(@PathVariable ("friendRequestId") Long friendRequestId){
+        return ResponseEntity.ok(friendService.confirmFriendRequest(friendRequestId));
     }
 
     @GetMapping("/get-request")

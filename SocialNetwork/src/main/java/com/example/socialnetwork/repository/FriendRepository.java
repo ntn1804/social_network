@@ -31,7 +31,7 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
             "WHERE (friend.friend_id = ?1 OR friend.user_id = ?1) \n" +
             "AND (friend.friend_id = ?2 OR friend.user_id = ?2) \n" +
             "AND friend.request_status = 'Accepted'", nativeQuery = true)
-    Friend findByUserIdAndFriendId2(Long userId, Long friendId);
+    Friend findAcceptedFriendByUserIdAndFriendId(Long userId, Long friendId);
 
     @Query(value = "SELECT friend_id FROM `social-network`.friend\n" +
             "WHERE (friend.friend_id = ?1 OR friend.user_id = ?1) \n" +

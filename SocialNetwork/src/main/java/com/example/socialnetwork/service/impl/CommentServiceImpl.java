@@ -59,7 +59,7 @@ public class CommentServiceImpl implements CommentService {
 
         // check friend
         if (!user.getId().equals(post.getUser().getId())) {
-            Friend friend = friendRepository.findByUserIdAndFriendId2(user.getId(), post.getUser().getId());
+            Friend friend = friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), post.getUser().getId());
             if (friend != null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not friends");
             }
@@ -135,7 +135,7 @@ public class CommentServiceImpl implements CommentService {
 
         // check friends
         if (!user.getId().equals(post.getUser().getId())) {
-            Friend friend = friendRepository.findByUserIdAndFriendId2(user.getId(), post.getUser().getId());
+            Friend friend = friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), post.getUser().getId());
             if (friend != null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not friends");
             }

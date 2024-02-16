@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.text.DecimalFormat;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -20,12 +21,13 @@ public class MyTest {
         String otp= new DecimalFormat("000000").format(new Random().nextInt(999999));
         System.out.println(otp);
     }
-    
+
     @Test
     public void date(){
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DATE, -7);
-        System.out.println("Date = "+ cal.getTime());
+        LocalDateTime time = LocalDateTime.now();
+        LocalDateTime sevenDaysBefore = LocalDateTime.now().minusDays(7);
+        System.out.println(time);
+        System.out.println(sevenDaysBefore);
     }
 
     @Test

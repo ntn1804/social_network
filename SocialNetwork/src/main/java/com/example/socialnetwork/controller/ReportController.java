@@ -14,26 +14,6 @@ public class ReportController {
     @Autowired
     private ReportService reportService;
 
-    @GetMapping("/count-post")
-    public long countPostByCreatedDate(){
-        return reportService.countPostByCreatedDate();
-    }
-
-    @GetMapping("/count-friend")
-    public long getFriendCountByCreatedDate(){
-        return reportService.countFriendByCreatedDate();
-    }
-
-    @GetMapping("/count-react")
-    public long getReactCountByCreatedDate(){
-        return reportService.countReactByCreatedDate();
-    }
-
-    @GetMapping("/count-comment")
-    public long getCommentCountByCreatedDate(){
-        return reportService.countCommentByCreatedDate();
-    }
-
     @GetMapping("/create-report")
     public void generateExcelReport(HttpServletResponse response) throws Exception {
         reportService.generateExcel(response);

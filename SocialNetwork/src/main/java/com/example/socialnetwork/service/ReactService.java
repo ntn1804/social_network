@@ -5,5 +5,5 @@ import com.example.socialnetwork.dto.response.Response;
 import org.springframework.http.ResponseEntity;
 
 public interface ReactService {
-    ResponseEntity<Response> reactPost(Long postId);
+    Response reactPost(Long postId);
 }

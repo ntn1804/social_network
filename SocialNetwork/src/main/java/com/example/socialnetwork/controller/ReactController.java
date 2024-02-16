@@ -16,6 +16,6 @@ public class ReactController {
 
     @PostMapping("/react-post/{postId}")
     public ResponseEntity<Response> reactPost(@PathVariable("postId") Long postId) {
-        return reactService.reactPost(postId);
+        return ResponseEntity.ok(reactService.reactPost(postId));
     }
 }
