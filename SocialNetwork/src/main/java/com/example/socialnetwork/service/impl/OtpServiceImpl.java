@@ -39,9 +39,11 @@ public class OtpServiceImpl implements OtpService {
     @Override
     public OtpResponseDTO sendOtp(LoginRequestDTO requestDTO) {
 
-        Optional<User> user = userRepository.findByUsername(requestDTO.getUsername());
+        Optional<User> optionalUser = userRepository.findByUsername(requestDTO.getUsername());
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        if(user.isPresent() && passwordEncoder.matches(requestDTO.getPassword(), user.get().getPassword())) {
+        if(passwordEncoder.matches(requestDTO.getPassword(), user.getPassword())) {
             return OtpResponseDTO.builder()
                     .otpCode(generateOtp(requestDTO))
                     .build();

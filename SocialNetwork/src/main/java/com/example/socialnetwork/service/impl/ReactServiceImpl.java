@@ -51,26 +51,49 @@ public class ReactServiceImpl implements ReactService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post is deleted");
         }
 
-        // post cua minh
-
-        // post khong phai cua minh
-
-            // co phai ban k
-
-            // post privacy
-
-
         if (post.getPrivacy().equals("only me")) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
         }
 
+        // post cua minh
+        if (post.getUser().getId().equals(user.getId())) {
+            createReactPost(postId, response, user, post);
+        }
+
+        // post khong phai cua minh
+        if (!post.getUser().getId().equals(user.getId())) {
+
+            // co phai ban k
+            Friend friend = friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), post.getUser().getId());
+            if (friend == null) {
+
+                // post privacy
+                if (post.getPrivacy().equals("public")) {
+                    createReactPost(postId, response, user, post);
+                } else {
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+                }
+            }
+
+            if (friend != null) {
+                if (!post.getPrivacy().equals("only me")) {
+                    createReactPost(postId, response, user, post);
+                } else {
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+                }
+            }
+        }
+        return response;
+    }
+
+    private void createReactPost(Long postId, Response response, User user, Post post) {
         React react = reactRepository.findByPostIdAndUser(postId, user);
-        if (react.getReact() != null) {
+        if (react != null) {
             reactRepository.delete(react);
             response.setResponseMessage("Unliked post");
         }
 
-        if (react.getReact() == null) {
+        if (react == null) {
             reactRepository.save(React.builder()
                     .react("Like")
                     .user(user)
@@ -80,6 +103,5 @@ public class ReactServiceImpl implements ReactService {
                     .build());
             response.setResponseMessage("Liked post");
         }
-        return response;
     }
 }

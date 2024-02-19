@@ -1,53 +1,117 @@
 package com.example.socialnetwork.service.impl;
 
 import com.example.socialnetwork.dto.request.RegistrationRequestDTO;
-import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.User;
-import com.example.socialnetwork.repository.PasswordRepository;
 import com.example.socialnetwork.repository.UserRepository;
-import jakarta.inject.Inject;
-import org.junit.jupiter.api.Assertions;
+import com.example.socialnetwork.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.server.ResponseStatusException;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
-    @InjectMocks
-    UserServiceImpl userService;
 
     @Mock
-    UserRepository userRepository;
-
+    private UserServiceImpl userService;
     @Mock
-    PasswordRepository passwordRepository;
-
+    private PasswordEncoder passwordEncoder;
     @Mock
-    PasswordEncoder passwordEncoder;
+    private UserRepository userRepository;
 
     @Test
-    void registerUser() {
-        //given
+    public void shouldThrowResponseStatusExceptionWhenRequestDTOHasBeenRegistered() {
+        // Given
+        RegistrationRequestDTO requestDTO = new RegistrationRequestDTO(
+                "hgjhk@gmail.com",
+                "jhgkjh",
+                "1234");
 
-        //when
-        when(userRepository.findByEmailOrUsername(anyString(), anyString())).thenReturn(new User());
+        User user = User.builder()
+                .email(requestDTO.getEmail())
+                .username(requestDTO.getUsername())
+                .password(passwordEncoder.encode(requestDTO.getPassword()))
+                .role("USER")
+                .build();
+        userRepository.save(user);
 
-        //then
-//        ResponseEntity<Response> abc = userService.registerUser(new RegistrationRequestDTO());
-//        ResponseEntity<Response> bca = null;
-//        Assertions.assertEquals(bca,abc);
+        // When
+        var exception = assertThrows(ResponseStatusException.class,
+                () -> userRepository.findByEmailOrUsername(requestDTO.getEmail(), requestDTO.getUsername()));
+        assertEquals("Email or Username has been registered", exception.getMessage());
+    }
 
+    @Test
+    public void shouldSaveUser() {
+        // Given
+        RegistrationRequestDTO requestDTO = new RegistrationRequestDTO(
+                "test@gmail.com",
+                "test",
+                "1234");
 
+        // When
+        User user = User.builder()
+                .email(requestDTO.getEmail())
+                .username(requestDTO.getUsername())
+                .password(passwordEncoder.encode(requestDTO.getPassword()))
+                .role("USER")
+                .build();
+        userRepository.save(user);
 
+        // Then
+        assertEquals(user.getEmail(), requestDTO.getEmail());
+        assertEquals(user.getUsername(), requestDTO.getUsername());
+        assertEquals(user.getPassword(), passwordEncoder.encode(requestDTO.getPassword()));
+    }
 
+    @Test
+    public void shouldSaveUserAndReturnSavedUser() {
+        // Given
+        RegistrationRequestDTO requestDTO = new RegistrationRequestDTO(
+                "test@gmail.com",
+                "test",
+                "1234");
+
+        User savedUser = User.builder()
+                .email(requestDTO.getEmail())
+                .username(requestDTO.getUsername())
+                .password("encodedPassword")
+                .role("USER")
+                .build();
+
+        // Mock the behavior of the userRepository.save method to return the savedUser
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+
+        // Mock the behavior of the passwordEncoder.encode method to return the encoded password
+        when(passwordEncoder.encode(requestDTO.getPassword())).thenReturn("encodedPassword");
+
+        // When
+        User result = userService.saveUser(requestDTO);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(requestDTO.getEmail(), result.getEmail());
+        assertEquals(requestDTO.getUsername(), result.getUsername());
+        assertEquals("encodedPassword", result.getPassword());
+        assertEquals("USER", result.getRole());
+
+        // Verify that the userRepository.save method was called with the correct user object
+        verify(userRepository).save(argThat(user -> {
+            assertEquals(requestDTO.getEmail(), user.getEmail());
+            assertEquals(requestDTO.getUsername(), user.getUsername());
+            assertEquals("encodedPassword", user.getPassword());
+            assertEquals("USER", user.getRole());
+            return true;
+        }));
     }
 }
