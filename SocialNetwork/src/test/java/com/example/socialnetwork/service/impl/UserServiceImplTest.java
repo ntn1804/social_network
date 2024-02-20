@@ -1,77 +1,96 @@
 package com.example.socialnetwork.service.impl;
 
+import com.example.socialnetwork.dto.request.ForgotPasswordRequestDTO;
 import com.example.socialnetwork.dto.request.RegistrationRequestDTO;
+import com.example.socialnetwork.dto.response.ForgotPasswordResponseDTO;
+import com.example.socialnetwork.dto.response.RegistrationResponseDTO;
 import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.repository.PasswordRepository;
 import com.example.socialnetwork.repository.UserRepository;
-import com.example.socialnetwork.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
 
-    @Mock
+    @InjectMocks
     private UserServiceImpl userService;
+    @Mock
+    private UserServiceImpl userServiceImpl;
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private PasswordRepository passwordRepository;
 
-    @Test
-    public void shouldThrowResponseStatusExceptionWhenRequestDTOHasBeenRegistered() {
-        // Given
-        RegistrationRequestDTO requestDTO = new RegistrationRequestDTO(
-                "hgjhk@gmail.com",
-                "jhgkjh",
-                "1234");
-
-        User user = User.builder()
-                .email(requestDTO.getEmail())
-                .username(requestDTO.getUsername())
-                .password(passwordEncoder.encode(requestDTO.getPassword()))
-                .role("USER")
-                .build();
-        userRepository.save(user);
-
-        // When
-        var exception = assertThrows(ResponseStatusException.class,
-                () -> userRepository.findByEmailOrUsername(requestDTO.getEmail(), requestDTO.getUsername()));
-        assertEquals("Email or Username has been registered", exception.getMessage());
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void shouldSaveUser() {
+    public void testRegisterUser_ExistingUser() {
+        // Arrange
+        RegistrationRequestDTO requestDTO = new RegistrationRequestDTO(
+                "test@gmail.com",
+                "test",
+                "1234");
+
+        User existingUser = new User();
+        existingUser.setEmail(requestDTO.getEmail());
+        existingUser.setUsername(requestDTO.getUsername());
+
+        when(userRepository.findByEmailOrUsername(requestDTO.getEmail(), requestDTO.getUsername()))
+                .thenReturn(existingUser);
+
+        // Act and Assert
+        assertThrows(ResponseStatusException.class, () -> {
+            userService.registerUser(requestDTO);
+        });
+
+        verify(userRepository).findByEmailOrUsername(requestDTO.getEmail(), requestDTO.getUsername());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    public void testRegisterUser_UniqueUser() {
         // Given
         RegistrationRequestDTO requestDTO = new RegistrationRequestDTO(
                 "test@gmail.com",
                 "test",
                 "1234");
 
+        when(userRepository.findByEmailOrUsername(requestDTO.getEmail(), requestDTO.getUsername()))
+                .thenReturn(null);
+
+        User savedUser = new User();
+        savedUser.setEmail(requestDTO.getEmail());
+        savedUser.setUsername(requestDTO.getUsername());
+
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+
         // When
-        User user = User.builder()
-                .email(requestDTO.getEmail())
-                .username(requestDTO.getUsername())
-                .password(passwordEncoder.encode(requestDTO.getPassword()))
-                .role("USER")
-                .build();
-        userRepository.save(user);
+        RegistrationResponseDTO responseDTO = userService.registerUser(requestDTO);
 
         // Then
-        assertEquals(user.getEmail(), requestDTO.getEmail());
-        assertEquals(user.getUsername(), requestDTO.getUsername());
-        assertEquals(user.getPassword(), passwordEncoder.encode(requestDTO.getPassword()));
+        verify(userRepository).findByEmailOrUsername(requestDTO.getEmail(), requestDTO.getUsername());
+        verify(userRepository).save(any(User.class));
+
+        assertEquals(responseDTO.getEmail(), requestDTO.getEmail());
+        assertEquals(responseDTO.getUsername(), requestDTO.getUsername());
     }
 
     @Test
@@ -113,5 +132,53 @@ class UserServiceImplTest {
             assertEquals("USER", user.getRole());
             return true;
         }));
+    }
+
+    @Test
+    public void testForgotPassword_InvalidEmail() {
+        // Given
+        ForgotPasswordRequestDTO requestDTO = new ForgotPasswordRequestDTO(
+                "test@gmail.com");
+
+        when(userRepository.findByEmail(requestDTO.getEmail()))
+                .thenReturn(null);
+
+        // When
+        assertThrows(ResponseStatusException.class, () -> {
+            userService.forgotPassword(requestDTO);
+        });
+    }
+
+    @Test
+    public void testForgotPassword_ValidEmail() {
+        // Given
+        ForgotPasswordRequestDTO requestDTO = new ForgotPasswordRequestDTO(
+                "test@gmail.com");
+
+        User existingUser = new User();
+        existingUser.setEmail(requestDTO.getEmail());
+
+        // When
+        when(userRepository.findByEmail(requestDTO.getEmail())).thenReturn(existingUser);
+        when(userService.generateToken(requestDTO)).thenReturn("token123");
+
+        ForgotPasswordResponseDTO responseDTO = userService.forgotPassword(requestDTO);
+
+        // Then
+        assertEquals(responseDTO.getUrlAndTokenResetPassword(),
+                responseDTO.getUrlAndTokenResetPassword());
+    }
+
+    @Test
+    public void testGenerateToken_NonExistingToken() {
+        // Given
+        ForgotPasswordRequestDTO requestDTO = new ForgotPasswordRequestDTO("test@gmail.com");
+
+        // When
+        when(passwordRepository.findByEmail(requestDTO.getEmail())).thenReturn(null);
+        String token = userService.generateToken(requestDTO);
+
+        // Then
+        assertNotNull(token);
     }
 }

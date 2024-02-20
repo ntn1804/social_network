@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
     public ForgotPasswordResponseDTO forgotPassword(ForgotPasswordRequestDTO requestDTO) {
         User existingUser = userRepository.findByEmail(requestDTO.getEmail());
         if (existingUser == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email or username");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email not found");
         }
         String tokenResetPassword = generateToken(requestDTO);
         return ForgotPasswordResponseDTO.builder()
@@ -74,11 +74,6 @@ public class UserServiceImpl implements UserService {
     }
 
     public String generateToken(ForgotPasswordRequestDTO requestDTO) {
-        User user = userRepository.findByEmail(requestDTO.getEmail());
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email does not exist");
-        }
-
         TokenResetPassword existingToken = passwordRepository.findByEmail(requestDTO.getEmail());
         if (existingToken != null) {
             passwordRepository.delete(existingToken);
