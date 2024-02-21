@@ -2,20 +2,24 @@ package com.example.socialnetwork.service.impl;
 
 import com.example.socialnetwork.dto.request.ForgotPasswordRequestDTO;
 import com.example.socialnetwork.dto.request.RegistrationRequestDTO;
+import com.example.socialnetwork.dto.request.ResetPasswordDTO;
 import com.example.socialnetwork.dto.response.ForgotPasswordResponseDTO;
 import com.example.socialnetwork.dto.response.RegistrationResponseDTO;
+import com.example.socialnetwork.dto.response.Response;
+import com.example.socialnetwork.entity.TokenResetPassword;
 import com.example.socialnetwork.entity.User;
 import com.example.socialnetwork.repository.PasswordRepository;
 import com.example.socialnetwork.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,8 +31,6 @@ class UserServiceImplTest {
 
     @InjectMocks
     private UserServiceImpl userService;
-    @Mock
-    private UserServiceImpl userServiceImpl;
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
@@ -42,7 +44,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    public void testRegisterUser_ExistingUser() {
+    void testRegisterUser_ExistingUser() {
         // Arrange
         RegistrationRequestDTO requestDTO = new RegistrationRequestDTO(
                 "test@gmail.com",
@@ -66,7 +68,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    public void testRegisterUser_UniqueUser() {
+    void testRegisterUser_UniqueUser() {
         // Given
         RegistrationRequestDTO requestDTO = new RegistrationRequestDTO(
                 "test@gmail.com",
@@ -94,7 +96,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    public void shouldSaveUserAndReturnSavedUser() {
+    void shouldSaveUserAndReturnSavedUser() {
         // Given
         RegistrationRequestDTO requestDTO = new RegistrationRequestDTO(
                 "test@gmail.com",
@@ -135,10 +137,9 @@ class UserServiceImplTest {
     }
 
     @Test
-    public void testForgotPassword_InvalidEmail() {
+    void testForgotPassword_InvalidEmail() {
         // Given
-        ForgotPasswordRequestDTO requestDTO = new ForgotPasswordRequestDTO(
-                "test@gmail.com");
+        ForgotPasswordRequestDTO requestDTO = new ForgotPasswordRequestDTO("test@gmail.com");
 
         when(userRepository.findByEmail(requestDTO.getEmail()))
                 .thenReturn(null);
@@ -150,35 +151,77 @@ class UserServiceImplTest {
     }
 
     @Test
-    public void testForgotPassword_ValidEmail() {
-        // Given
-        ForgotPasswordRequestDTO requestDTO = new ForgotPasswordRequestDTO(
-                "test@gmail.com");
+    void forgotPassword_ValidEmail() {
+        //Given
+        UUID uuidTest = UUID.fromString("df7dcce6-3495-49e2-aa01-c649647865d9");
+        ForgotPasswordRequestDTO requestDTO = new ForgotPasswordRequestDTO("test@gmail.com");
 
         User existingUser = new User();
         existingUser.setEmail(requestDTO.getEmail());
 
-        // When
-        when(userRepository.findByEmail(requestDTO.getEmail())).thenReturn(existingUser);
-        when(userService.generateToken(requestDTO)).thenReturn("token123");
+        try (MockedStatic<UUID> utilities = Mockito.mockStatic(UUID.class)) {
+            // xu ly random cua UUID
+            utilities.when(UUID::randomUUID).thenReturn(uuidTest);
 
-        ForgotPasswordResponseDTO responseDTO = userService.forgotPassword(requestDTO);
+            TokenResetPassword existingToken = TokenResetPassword.builder()
+                    .email("emailTest")
+                    .tokenSeries(uuidTest.toString())
+                    .expired(LocalDateTime.now())
+                    .build();
+
+            // When
+            when(userRepository.findByEmail(requestDTO.getEmail())).thenReturn(existingUser);
+
+            when(passwordRepository.save(ArgumentMatchers.nullable(TokenResetPassword.class)))
+                    .thenReturn(existingToken);
+
+            String tokenResetPassword = userService.generateToken(ForgotPasswordRequestDTO.builder()
+                    .email("emailTest")
+                    .build());
+
+        ForgotPasswordResponseDTO result = userService.forgotPassword(requestDTO);
 
         // Then
-        assertEquals(responseDTO.getUrlAndTokenResetPassword(),
-                responseDTO.getUrlAndTokenResetPassword());
+        assertEquals("http://localhost:8080/api/v1/user/reset-password/" + tokenResetPassword,
+                result.getUrlAndTokenResetPassword());
+        }
+        verify(passwordRepository,times(0)).delete(any());
     }
 
     @Test
-    public void testGenerateToken_NonExistingToken() {
-        // Given
-        ForgotPasswordRequestDTO requestDTO = new ForgotPasswordRequestDTO("test@gmail.com");
+    void testResetPassword_InvalidToken() {
+        ResetPasswordDTO requestDTO = new ResetPasswordDTO("1234");
 
-        // When
-        when(passwordRepository.findByEmail(requestDTO.getEmail())).thenReturn(null);
-        String token = userService.generateToken(requestDTO);
+        String tokenResetPassword = "dc51e081-8d7d-49a0-9283-e0e1d0935c71";
 
-        // Then
-        assertNotNull(token);
+        when(passwordRepository.findByTokenSeries(tokenResetPassword)).thenReturn(null);
+
+        assertThrows(ResponseStatusException.class, () -> {
+            userService.resetPassword(tokenResetPassword, requestDTO);
+        });
+    }
+
+    @Test
+    void testResetPassword_ValidToken() {
+        ResetPasswordDTO requestDTO = new ResetPasswordDTO("1234");
+
+        String tokenResetPassword = "dc51e081-8d7d-49a0-9283-e0e1d0935c71";
+
+        TokenResetPassword token = TokenResetPassword.builder()
+                .email("test@gmail.com")
+                .build();
+
+        User user = User.builder()
+                .email("test@gmail.com")
+                .password(passwordEncoder.encode(requestDTO.getNewPassword()))
+                .build();
+
+        when(passwordRepository.findByTokenSeries(tokenResetPassword)).thenReturn(token);
+
+        when(userRepository.findByEmail(token.getEmail())).thenReturn(user);
+
+        Response result = userService.resetPassword(tokenResetPassword, requestDTO);
+
+        assertNotNull(result);
     }
 }

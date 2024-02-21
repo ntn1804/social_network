@@ -96,28 +96,11 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = userRepository.findByEmail(token.getEmail());
-        if (Objects.nonNull(user)) {
-            user.setPassword(passwordEncoder.encode(requestDTO.getNewPassword()));
-            userRepository.save(user);
-        } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User does not exist");
-        }
+        user.setPassword(passwordEncoder.encode(requestDTO.getNewPassword()));
+        userRepository.save(user);
+
         return Response.builder()
                 .responseMessage("Reset password successfully")
-                .build();
-    }
-
-    @Override
-    public Response removeUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsuccessfully removed user"));
-        userRepository.deleteById(user.getId());
-
-        return Response.builder()
-                .responseMessage("Successfully removed user")
                 .build();
     }
 }

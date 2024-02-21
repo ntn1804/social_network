@@ -44,9 +44,4 @@ public class UserController {
                                 @RequestBody ResetPasswordDTO requestDTO) {
         return ResponseEntity.ok(userService.resetPassword(tokenResetPassword, requestDTO));
     }
-
-    @DeleteMapping("/remove-user")
-    public ResponseEntity<Response> removeUser() {
-        return ResponseEntity.ok(userService.removeUser());
-    }
 }

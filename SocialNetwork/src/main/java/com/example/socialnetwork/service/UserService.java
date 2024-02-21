@@ -14,6 +14,4 @@ public interface UserService {
     RegistrationResponseDTO registerUser(RegistrationRequestDTO requestDTO);
     ForgotPasswordResponseDTO forgotPassword(ForgotPasswordRequestDTO requestDTO);
     Response resetPassword(String tokenResetPassword, ResetPasswordDTO requestDTO);
-    Response removeUser();
-
 }
