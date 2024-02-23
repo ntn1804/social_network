@@ -9,6 +9,7 @@ import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,7 +21,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,9 +40,8 @@ public class ImageServiceImpl implements ImageService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
-        if (optionalUser.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please login");
-        }
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 
         if (file.getContentType() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose a file");
@@ -50,8 +49,9 @@ public class ImageServiceImpl implements ImageService {
 
         MediaType mediaType = MediaType.parseMediaType(file.getContentType());
         if (!mediaType.getType().equals("image")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose an image file");
-        } else {
+            throw new InvalidMediaTypeException(file.getContentType(), "please choose an image file");
+        }
+
             UUID uuid = UUID.randomUUID();
             String stringUuid = uuid.toString();
 
@@ -62,7 +62,7 @@ public class ImageServiceImpl implements ImageService {
                     .type(file.getContentType())
                     .filePath(filePath)
                     .isDeleted(0)
-                    .user(optionalUser.get())
+                    .user(user)
                     .build());
 
             file.transferTo(new File(filePath + ".jpg"));
@@ -70,7 +70,6 @@ public class ImageServiceImpl implements ImageService {
             return Response.builder()
                     .responseMessage("file uploaded successfully")
                     .build();
-        }
     }
 
     public ResponseEntity<?> showMyAvatar() throws IOException {
@@ -78,17 +77,19 @@ public class ImageServiceImpl implements ImageService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
-        if (optionalUser.isPresent()){
-            User user = optionalUser.get();
-            Avatar avatar = imageRepository.findByUserId(user.getId());
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 
-                String filePath = avatar.getFilePath() + ".jpg";
-                byte[] images = Files.readAllBytes(new File(filePath).toPath());
-                return ResponseEntity.status(HttpStatus.OK)
-                        .contentType(MediaType.valueOf("image/png"))
-                        .body(images);
+        Avatar avatar = imageRepository.findByUserId(user.getId());
 
+        if (avatar == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Avatar not found");
         }
-        return null;
+
+        String filePath = avatar.getFilePath() + ".jpg";
+        byte[] images = Files.readAllBytes(new File(filePath).toPath());
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("image/png"))
+                .body(images);
     }
 }

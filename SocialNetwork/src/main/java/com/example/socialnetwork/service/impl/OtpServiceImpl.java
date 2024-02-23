@@ -70,10 +70,12 @@ public class OtpServiceImpl implements OtpService {
         Otp otp = otpRepository.findByUsername(requestDTO.getUsername());
         if(otp == null){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Login to get OTP");
-        } else if (otp.getExpired().isBefore(LocalDateTime.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Expired OTP");
-        } else if (!otp.getOtpCode().equals(requestDTO.getOtpCode())){
+        }
+        if (!otp.getOtpCode().equals(requestDTO.getOtpCode())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid OTP");
+        }
+        if (otp.getExpired().isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Expired OTP");
         }
         otpRepository.delete(otp);
         return TokenResponseDTO.builder()

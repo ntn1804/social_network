@@ -151,7 +151,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void forgotPassword_ValidEmail() {
+    void testForgotPassword_ValidEmail() {
         //Given
         UUID uuidTest = UUID.fromString("df7dcce6-3495-49e2-aa01-c649647865d9");
         ForgotPasswordRequestDTO requestDTO = new ForgotPasswordRequestDTO("test@gmail.com");
@@ -179,10 +179,11 @@ class UserServiceImplTest {
                     .email("emailTest")
                     .build());
 
-        ForgotPasswordResponseDTO result = userService.forgotPassword(requestDTO);
+            ForgotPasswordResponseDTO result = userService.forgotPassword(requestDTO);
 
-        // Then
-        assertEquals("http://localhost:8080/api/v1/user/reset-password/" + tokenResetPassword,
+            // Then
+
+            assertEquals("http://localhost:8080/api/v1/user/reset-password/" + tokenResetPassword,
                 result.getUrlAndTokenResetPassword());
         }
         verify(passwordRepository,times(0)).delete(any());

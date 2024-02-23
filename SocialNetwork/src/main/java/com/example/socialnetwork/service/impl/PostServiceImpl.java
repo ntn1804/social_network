@@ -27,9 +27,6 @@ import java.util.*;
 @Service
 public class PostServiceImpl implements PostService {
 
-    //  private final String folderPath = "C:\\Users\\MY PC\\Desktop\\Dev9\\MyFiles\\Post\\";
-    private final String folderPath = "C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\Post\\";
-
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -231,15 +228,13 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostResponseDTO getPostById(Long postId) {
-        PostResponseDTO result = null;
         // get userId
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
-        Long userId = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"))
-                .getId();
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         // base on postId -> get friendId
         Optional<Post> optionalPost = postRepository.findById(postId);
@@ -247,31 +242,41 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
         Long friendId = post.getUser().getId();
 
-        if (userId.equals(friendId)) {
-            if (post.getIsDeleted() == 1) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post is deleted");
+        if (post.getIsDeleted() == 1) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post is deleted");
+        }
 
-            } else {
-                result = getPostResponseDTO(postId, post, friendId);
+        if (!user.getId().equals(friendId)) {
+            Friend friend = friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), friendId);
+            if (friend == null && !post.getPrivacy().equals("public")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not friends");
             }
-
-        } else {
-            Friend friend = friendRepository.findAcceptedFriendByUserIdAndFriendId(userId, friendId);
-            if (friend == null) {
-                if (!post.getPrivacy().equals("public")) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not friends");
-                } else {
-                    result = getPostResponseDTO(postId, post, friendId);
-                }
-
-            } else if (post.getIsDeleted() == 1 || post.getPrivacy().equals("only me")) {
+            if (post.getPrivacy().equals("only me")) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
-
-            } else if (post.getIsDeleted() == 0) {
-                result = getPostResponseDTO(postId, post, friendId);
             }
         }
-        return result;
+
+        return getPostResponseDTO(postId, post, friendId);
+    }
+
+    private PostResponseDTO getPostResponseDTO(Long postId, Post post, Long friendId) {
+        List<PostImage> postImageList = postImageRepository.findAllByPostId(postId);
+        List<PostImageDTO> postImageDTOList = new ArrayList<>();
+
+        for (PostImage postImage : postImageList) {
+            postImageDTOList.add(PostImageDTO.builder()
+                    .filePath(postImage.getFilePath() + ".jpg")
+                    .build());
+        }
+
+        return PostResponseDTO.builder()
+                .user(UserDTO.builder()
+                        .id(friendId)
+                        .username(post.getUser().getUsername())
+                        .build())
+                .text(post.getText())
+                .postImageDTOList(postImageDTOList)
+                .build();
     }
 
     @Override
@@ -284,6 +289,7 @@ public class PostServiceImpl implements PostService {
 
         Optional<Post> optionalPost = postRepository.findById(postId);
         Post post = optionalPost.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+
         if (!post.getUser().getId().equals(user.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not your post");
         }
@@ -322,25 +328,4 @@ public class PostServiceImpl implements PostService {
                 .responseMessage("Post deleted successfully")
                 .build();
     }
-
-    private PostResponseDTO getPostResponseDTO(Long postId, Post post, Long friendId) {
-        List<PostImage> postImageList = postImageRepository.findAllByPostId(postId);
-        List<PostImageDTO> postImageDTOList = new ArrayList<>();
-
-        for (PostImage postImage : postImageList) {
-            postImageDTOList.add(PostImageDTO.builder()
-                    .filePath(postImage.getFilePath() + ".jpg")
-                    .build());
-        }
-
-        return PostResponseDTO.builder()
-                .user(UserDTO.builder()
-                        .id(friendId)
-                        .username(post.getUser().getUsername())
-                        .build())
-                .text(post.getText())
-                .postImageDTOList(postImageDTOList)
-                .build();
-    }
-
 }

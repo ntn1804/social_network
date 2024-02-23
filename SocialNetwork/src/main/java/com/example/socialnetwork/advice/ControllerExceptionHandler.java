@@ -2,6 +2,7 @@ package com.example.socialnetwork.advice;
 
 import io.jsonwebtoken.security.SignatureException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -50,4 +51,9 @@ public class ControllerExceptionHandler {
         return "error: invalid token";
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(InvalidMediaTypeException.class)
+    public String handleInvalidMediaTypeException(InvalidMediaTypeException exception) {
+        return exception.getMessage();
+    }
 }

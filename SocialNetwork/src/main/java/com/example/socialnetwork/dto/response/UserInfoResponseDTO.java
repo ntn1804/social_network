@@ -2,9 +2,7 @@ package com.example.socialnetwork.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.LocalDate;
 import java.util.Date;
 
 @AllArgsConstructor

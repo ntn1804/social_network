@@ -1,7 +1,9 @@
 package com.example.socialnetwork.service.impl;
 
 import com.example.socialnetwork.dto.request.LoginRequestDTO;
+import com.example.socialnetwork.dto.request.OtpValidationRequest;
 import com.example.socialnetwork.dto.response.OtpResponseDTO;
+import com.example.socialnetwork.dto.response.TokenResponseDTO;
 import com.example.socialnetwork.entity.Otp;
 import com.example.socialnetwork.entity.User;
 import com.example.socialnetwork.repository.OtpRepository;
@@ -13,17 +15,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.text.DecimalFormat;
-import java.text.FieldPosition;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OtpServiceImplTest {
@@ -73,8 +74,6 @@ class OtpServiceImplTest {
 
         Optional<User> optionalUser = Optional.of(user);
 
-        final DecimalFormat mockFormatter = mock(DecimalFormat.class);
-
         Random randomNumberMock = Mockito.mock(Random.class);
         when(randomNumberMock.nextInt(999999)).thenReturn(123456);
         // Create instance of DecimalFormat
@@ -83,31 +82,79 @@ class OtpServiceImplTest {
         // Generate OTP
         String otp = decimalFormat.format(randomNumberMock.nextInt(999999));
 
-//        final StringBuffer buffer = new StringBuffer("123456");
-//        when(mockFormatter.format(anyInt())).thenReturn(buffer.toString());
-//        when(mockFormatter.format(anyLong(), any(StringBuffer.class), any(FieldPosition.class)))
-//                .thenReturn(buffer);
-
-//        String otpCode = "123456";
-//
-//        Otp otp = Otp.builder()
-//                .otpCode(otpCode)
-//                .build();
 
         when(userRepository.findByUsername(requestDTO.getUsername())).thenReturn(optionalUser);
         when(passwordEncoder.matches(requestDTO.getPassword(), user.getPassword()))
                 .thenReturn(true);
         when(otpRepository.findByUsername(requestDTO.getUsername())).thenReturn(null);
 
-//        String otpCode = otpService.generateOtp(requestDTO);
-
         OtpResponseDTO result = otpService.sendOtp(requestDTO);
 
-//        OtpResponseDTO.builder()
-//                .otpCode(otp.getOtpCode())
-//                .build();
-
-//        assertEquals(otp, result.getOtpCode());
         assertNotNull(result.getOtpCode());
+    }
+
+    @Test
+    void testValidateOtp_NotLoginException() {
+        OtpValidationRequest requestDTO = new OtpValidationRequest(
+                "test", "123456");
+
+        when(otpRepository.findByUsername(requestDTO.getUsername())).thenReturn(null);
+
+        assertThrows(ResponseStatusException.class, () -> {
+            otpService.validateOtp(requestDTO);
+        });
+    }
+
+    @Test
+    void testValidateOtp_InvalidOtp() {
+        OtpValidationRequest requestDTO = new OtpValidationRequest(
+                "test", "123456");
+
+        Otp otp = Otp.builder()
+                .otpCode("123457")
+                .build();
+
+        when(otpRepository.findByUsername(requestDTO.getUsername())).thenReturn(otp);
+
+        assertThrows(ResponseStatusException.class, () -> {
+            otpService.validateOtp(requestDTO);
+        });
+    }
+
+    @Test
+    void testValidateOtp_ExpiredOtp() {
+        OtpValidationRequest requestDTO = new OtpValidationRequest(
+                "test", "123456");
+
+        Otp otp = Otp.builder()
+                .otpCode("123456")
+                .expired(LocalDateTime.now())
+                .build();
+
+        when(otpRepository.findByUsername(requestDTO.getUsername())).thenReturn(otp);
+
+        assertThrows(ResponseStatusException.class, () -> {
+            otpService.validateOtp(requestDTO);
+        });
+    }
+
+    @Test
+    void testValidateOtp_SuccessfulCase() {
+        OtpValidationRequest requestDTO = new OtpValidationRequest(
+                "test", "123456");
+
+        Otp otp = Otp.builder()
+                .otpCode("123456")
+                .expired(LocalDateTime.now().plusMinutes(5))
+                .build();
+
+        TokenResponseDTO tokenResponseDTO = new TokenResponseDTO("token123");
+
+        when(otpRepository.findByUsername(requestDTO.getUsername())).thenReturn(otp);
+        when(jwtService.generateToken(requestDTO.getUsername())).thenReturn("token123");
+
+        TokenResponseDTO result = otpService.validateOtp(requestDTO);
+
+        assertEquals(tokenResponseDTO.getToken(), result.getToken());
     }
 }
