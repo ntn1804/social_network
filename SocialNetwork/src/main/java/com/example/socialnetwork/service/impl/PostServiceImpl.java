@@ -12,6 +12,7 @@ import com.example.socialnetwork.repository.*;
 import com.example.socialnetwork.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,10 +47,8 @@ public class PostServiceImpl implements PostService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
-
-        if (optionalUser.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-        }
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         if (files == null && requestDTO == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Post is empty");
@@ -61,7 +60,7 @@ public class PostServiceImpl implements PostService {
             Post post;
             if (requestDTO != null) {
                 post = Post.builder()
-                        .user(optionalUser.get())
+                        .user(user)
                         .text(requestDTO.getText())
                         .privacy("public")
                         .isDeleted(0)
@@ -69,16 +68,18 @@ public class PostServiceImpl implements PostService {
 
             } else {
                 post = Post.builder()
-                        .user(optionalUser.get())
+                        .user(user)
                         .privacy("public")
                         .isDeleted(0)
                         .build();
             }
             postRepository.save(post);
             savePostImage(files, post);
-        } else {
+        }
+
+        if (files == null) {
             Post post = Post.builder()
-                    .user(optionalUser.get())
+                    .user(user)
                     .text(requestDTO.getText())
                     .privacy("public")
                     .isDeleted(0)
@@ -115,49 +116,58 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Response editPost(Long postId, MultipartFile[] files, PostRequestDTO requestDTO, PostPrivacyDTO privacyDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
-        // check files = null & content = null.
-        if (files == null && requestDTO == null) {
-            return null;
-        }
+        User user = optionalUser.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         // get old post.
         Optional<Post> optionalExistingPost = postRepository.findById(postId);
+        Post post = optionalExistingPost
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
 
-        if (optionalExistingPost.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+        // not your post.
+        if (!user.getId().equals(post.getUser().getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can not edit other post");
         }
-        Post editPost = optionalExistingPost.get();
+
+        // deleted post.
+        if (post.getIsDeleted() == 1) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post is deleted");
+        }
+
+        // check files = null & content = null.
+        if (files == null && requestDTO == null && privacyDTO == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Post is empty");
+        }
 
         // get old post image list -> if exists then soft delete.
-        List<PostImage> editPostImageList = postImageRepository.findAllByPostId(postId);
-        if (editPostImageList != null) {
-            editPostImageList.forEach(postImage -> postImage.setIsDeleted(1));
+        List<PostImage> oldPostImageList = postImageRepository.findAllByPostId(postId);
+        if (oldPostImageList != null) {
+            oldPostImageList.forEach(postImage -> postImage.setIsDeleted(1));
         }
 
-        // files != null -> save post image.
+        // check files
         if (files != null) {
             checkFileType(files);
-            savePostImage(files, editPost);
-
-            // case 1: files != null & content != null
-            if (requestDTO != null) {
-                editPost.setText(requestDTO.getText());
-
-                // case 2: files != null & content = null -> delete post content.
-            } else {
-                editPost.setText(null);
-            }
-
-            // case 3: files = null & content != null
-        } else {
-            editPost.setText(requestDTO.getText());
+            savePostImage(files, post);
         }
 
+        // check requestDTO
+        if (requestDTO != null) {
+            post.setText(requestDTO.getText());
+        }
+        if (requestDTO == null || requestDTO.getText().isEmpty()) {
+            post.setText(null);
+        }
+
+        // check post privacy change
         if (privacyDTO != null) {
-            editPost.setPrivacy(privacyDTO.getPrivacy());
+            post.setPrivacy(privacyDTO.getPrivacy());
         }
-        postRepository.save(editPost);
+
+        postRepository.save(post);
 
         return Response.builder()
                 .responseMessage("Edited post successfully")
@@ -167,11 +177,11 @@ public class PostServiceImpl implements PostService {
     private void checkFileType(MultipartFile[] files) {
         Arrays.stream(files).forEach(file -> {
             if (file.getContentType() == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose image file(s)");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose file(s)");
             }
             MediaType mediaType = MediaType.parseMediaType(file.getContentType());
             if (!mediaType.getType().equals("image")) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose image file(s)");
+                throw new InvalidMediaTypeException(file.getContentType(), "please choose image file(s)");
             }
         });
     }

@@ -1,11 +1,11 @@
 package com.example.socialnetwork.service.impl;
 
 import com.example.socialnetwork.config.UserInfoUserDetails;
+import com.example.socialnetwork.dto.request.PostPrivacyDTO;
+import com.example.socialnetwork.dto.request.PostRequestDTO;
 import com.example.socialnetwork.dto.response.PostResponseDTO;
-import com.example.socialnetwork.entity.Friend;
-import com.example.socialnetwork.entity.Post;
-import com.example.socialnetwork.entity.PostImage;
-import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.dto.response.Response;
+import com.example.socialnetwork.entity.*;
 import com.example.socialnetwork.repository.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,20 +13,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PostServiceImplTest {
@@ -46,8 +47,382 @@ class PostServiceImplTest {
     private ReactRepository reactRepository;
 
     @Test
-    void testGetAllPosts() {
+    void testCreatePost_EmptyPost() {
+        MultipartFile[] files = null;
+        PostRequestDTO requestDTO = null;
 
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+
+        User user = User.builder()
+                .id(1L)
+                .username("test username")
+                .role("USER")
+                .build();
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Optional<User> optionalUser = Optional.of(user);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+
+        assertThrows(ResponseStatusException.class, () -> {
+            postService.createPost(files, requestDTO);
+        });
+    }
+
+    @Test
+    void testCreatePost_NotImageFiles() {
+        MultipartFile[] files = new MockMultipartFile[]{new MockMultipartFile(
+                "fileName",
+                (String) null,
+                null,
+                (byte[]) null
+        )};
+
+        PostRequestDTO requestDTO = new PostRequestDTO("test content");
+
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+
+        User user = User.builder()
+                .id(1L)
+                .username("test username")
+                .role("USER")
+                .build();
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Optional<User> optionalUser = Optional.of(user);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+
+        assertThrows(ResponseStatusException.class, () -> {
+            postService.createPost(files, requestDTO);
+        });
+    }
+
+    @Test
+    void testCreatePost_MediaTypeNotEqualImage() {
+        MultipartFile[] files = new MockMultipartFile[]{new MockMultipartFile(
+                "fileName",
+                (String) null,
+                "text/plain",
+                (byte[]) null
+        )};
+
+        PostRequestDTO requestDTO = new PostRequestDTO("test content");
+
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+
+        User user = User.builder()
+                .id(1L)
+                .username("test username")
+                .role("USER")
+                .build();
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Optional<User> optionalUser = Optional.of(user);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+
+        assertThrows(InvalidMediaTypeException.class, () -> {
+            postService.createPost(files, requestDTO);
+        });
+    }
+
+    @Test
+    void testCreatePost_FilesNotNull_RequestDtoNotNull() {
+        MultipartFile[] files = new MockMultipartFile[]{new MockMultipartFile(
+                "fileName",
+                (String) null,
+                "image/jpeg",
+                (byte[]) null
+        )};
+
+        PostRequestDTO requestDTO = new PostRequestDTO("test content");
+
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+
+        User user = User.builder()
+                .id(1L)
+                .username("test username")
+                .role("USER")
+                .build();
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Optional<User> optionalUser = Optional.of(user);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+
+        Post post = Post.builder()
+                .user(user)
+                .text(requestDTO.getText())
+                .privacy("public")
+                .isDeleted(0)
+                .build();
+
+        when(postRepository.save(any(Post.class))).thenReturn(post);
+
+        Response result = postService.createPost(files, requestDTO);
+        assertNotNull(result);
+    }
+
+    @Test
+    void testCreatePost_FilesNotNull_RequestDtoNull() {
+        MultipartFile[] files = new MockMultipartFile[]{new MockMultipartFile(
+                "fileName",
+                (String) null,
+                "image/jpeg",
+                (byte[]) null
+        )};
+
+        PostRequestDTO requestDTO = null;
+
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+
+        User user = User.builder()
+                .id(1L)
+                .username("test username")
+                .role("USER")
+                .build();
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Optional<User> optionalUser = Optional.of(user);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+
+        Post post = Post.builder()
+                .user(user)
+                .privacy("public")
+                .isDeleted(0)
+                .build();
+
+        when(postRepository.save(any(Post.class))).thenReturn(post);
+
+        Response result = postService.createPost(files, requestDTO);
+        assertNotNull(result);
+    }
+
+    @Test
+    void testCreatePost_FilesNull_RequestDtoNotNull() {
+        MultipartFile[] files = null;
+
+        PostRequestDTO requestDTO = new PostRequestDTO("test content");
+
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+
+        User user = User.builder()
+                .id(1L)
+                .username("test username")
+                .role("USER")
+                .build();
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Optional<User> optionalUser = Optional.of(user);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+
+        Post post = Post.builder()
+                .user(user)
+                .text(requestDTO.getText())
+                .privacy("public")
+                .isDeleted(0)
+                .build();
+
+        when(postRepository.save(any(Post.class))).thenReturn(post);
+
+        Response result = postService.createPost(files, requestDTO);
+        assertNotNull(result);
+    }
+
+    @Test
+    void testEditPost_NotYourPost() {
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+
+        User user = User.builder()
+                .id(1L)
+                .username("test username")
+                .role("USER")
+                .build();
+
+        User user2 = User.builder()
+                .id(2L)
+                .username("test username")
+                .role("USER")
+                .build();
+
+        Post post = Post.builder()
+                .id(1L)
+                .user(user2)
+                .build();
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Optional<User> optionalUser = Optional.of(user);
+        Optional<Post> optionalPost = Optional.of(post);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+
+        when(postRepository.findById(post.getId())).thenReturn(optionalPost);
+
+        assertThrows(ResponseStatusException.class, () -> {
+            postService.editPost(post.getId(), null, null, null);
+        });
+    }
+
+    @Test
+    void testEditPost_DeletedPost() {
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+
+        User user = User.builder()
+                .id(1L)
+                .username("test username")
+                .role("USER")
+                .build();
+
+        Post post = Post.builder()
+                .id(1L)
+                .user(user)
+                .isDeleted(1)
+                .build();
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Optional<User> optionalUser = Optional.of(user);
+        Optional<Post> optionalPost = Optional.of(post);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+
+        when(postRepository.findById(post.getId())).thenReturn(optionalPost);
+
+        assertThrows(ResponseStatusException.class, () -> {
+            postService.editPost(post.getId(), null, null, null);
+        });
+    }
+
+    @Test
+    void testEditPost_TripleNull() {
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+
+        User user = User.builder()
+                .id(1L)
+                .username("test username")
+                .role("USER")
+                .build();
+
+        Post post = Post.builder()
+                .id(1L)
+                .user(user)
+                .isDeleted(0)
+                .build();
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Optional<User> optionalUser = Optional.of(user);
+        Optional<Post> optionalPost = Optional.of(post);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+
+        when(postRepository.findById(post.getId())).thenReturn(optionalPost);
+
+        assertThrows(ResponseStatusException.class, () -> {
+            postService.editPost(post.getId(), null, null, null);
+        });
+    }
+
+    @Test
+    void testEditPost_SuccessfulCase() {
+        MultipartFile[] files = new MockMultipartFile[]{new MockMultipartFile(
+                "fileName",
+                (String) null,
+                "image/jpeg",
+                (byte[]) null
+        )};
+        PostRequestDTO requestDTO = new PostRequestDTO("test content");
+        PostPrivacyDTO privacyDTO = new PostPrivacyDTO("public");
+
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+
+        User user = User.builder()
+                .id(1L)
+                .username("test username")
+                .role("USER")
+                .build();
+
+        Post post = Post.builder()
+                .id(1L)
+                .user(user)
+                .isDeleted(0)
+                .build();
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Optional<User> optionalUser = Optional.of(user);
+        Optional<Post> optionalPost = Optional.of(post);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+
+        when(postRepository.findById(post.getId())).thenReturn(optionalPost);
+
+        Response result = postService.editPost(post.getId(), files, requestDTO, privacyDTO);
+        assertNotNull(result);
+    }
+
+    @Test
+    void testGetAllPosts() {
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
 
@@ -399,5 +774,62 @@ class PostServiceImplTest {
         assertThrows(ResponseStatusException.class, () -> {
             postService.deletePost(post.getId());
         });
+    }
+
+    @Test
+    void testDeletePost_SuccessfulCase() {
+        User user = User.builder()
+                .id(1L)
+                .username("testUsername")
+                .email("testEmail")
+                .fullName("testFullname")
+                .dateOfBirth(Date.from(Instant.now()))
+                .job("fuho")
+                .place("vietnam")
+                .role("USER")
+                .build();
+
+        Optional<User> optionalUser = Optional.of(user);
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when((authentication.getPrincipal())).thenReturn(userDetails);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+
+        Post post = Post.builder()
+                .id(1L)
+                .user(user)
+                .isDeleted(0)
+                .privacy("public")
+                .build();
+
+        Optional<Post> optionalPost = Optional.of(post);
+
+        when(postRepository.findById(post.getId())).thenReturn(optionalPost);
+
+        Comment comment = Comment.builder().build();
+        Comment comment2 = Comment.builder().build();
+        List<Comment> existComments = new ArrayList<>(Arrays.asList(comment, comment2));
+        when(commentRepository.findAllByPostId(post.getId())).thenReturn(existComments);
+
+        React react = React.builder().build();
+        React react2 = React.builder().build();
+        List<React> existReacts = new ArrayList<>(Arrays.asList(react, react2));
+        when(reactRepository.findAllByPostId(post.getId())).thenReturn(existReacts);
+
+        PostImage postImage = PostImage.builder().build();
+        PostImage postImage2 = PostImage.builder().build();
+        List<PostImage> existPostImage = new ArrayList<>(Arrays.asList(postImage, postImage2));
+        when(postImageRepository.findAllByPostId(post.getId())).thenReturn(existPostImage);
+
+        Response result = postService.deletePost(post.getId());
+        assertNotNull(result);
     }
 }

@@ -30,10 +30,8 @@ public class CommentServiceImpl implements CommentService {
 
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private PostRepository postRepository;
-
     @Autowired
     private CommentRepository commentRepository;
     @Autowired
@@ -53,14 +51,18 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
 
         // check post deleted
-        if (post.getIsDeleted() == 1 || post.getPrivacy().equals("only me")) {
+        if (post.getIsDeleted() == 1) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post is deleted");
+        }
+
+        if (post.getPrivacy().equals("only me")) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
         }
 
         // check friend
         if (!user.getId().equals(post.getUser().getId())) {
             Friend friend = friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), post.getUser().getId());
-            if (friend != null) {
+            if (friend == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not friends");
             }
         }
@@ -92,7 +94,7 @@ public class CommentServiceImpl implements CommentService {
 
         // check post exists
         if (comment.getPost().getIsDeleted() == 1) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found");
         }
 
         // check whose comment
@@ -136,7 +138,7 @@ public class CommentServiceImpl implements CommentService {
         // check friends
         if (!user.getId().equals(post.getUser().getId())) {
             Friend friend = friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), post.getUser().getId());
-            if (friend != null) {
+            if (friend == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not friends");
             }
         }
@@ -165,7 +167,6 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         Optional<Comment> optionalComment = commentRepository.findById(commentId);
-
         Comment comment = optionalComment
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found"));
 
