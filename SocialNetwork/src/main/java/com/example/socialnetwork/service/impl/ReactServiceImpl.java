@@ -51,10 +51,6 @@ public class ReactServiceImpl implements ReactService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post is deleted");
         }
 
-        if (post.getPrivacy().equals("only me")) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
-        }
-
         // post cua minh
         if (post.getUser().getId().equals(user.getId())) {
             createReactPost(postId, response, user, post);
@@ -62,25 +58,22 @@ public class ReactServiceImpl implements ReactService {
 
         // post khong phai cua minh
         if (!post.getUser().getId().equals(user.getId())) {
+            if (post.getPrivacy().equals("only me")) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+            }
 
             // co phai ban k
             Friend friend = friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), post.getUser().getId());
             if (friend == null) {
-
                 // post privacy
-                if (post.getPrivacy().equals("public")) {
-                    createReactPost(postId, response, user, post);
-                } else {
+                if (!post.getPrivacy().equals("public")) {
                     throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
                 }
+                createReactPost(postId, response, user, post);
             }
 
             if (friend != null) {
-                if (!post.getPrivacy().equals("only me")) {
-                    createReactPost(postId, response, user, post);
-                } else {
-                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
-                }
+                createReactPost(postId, response, user, post);
             }
         }
         return response;

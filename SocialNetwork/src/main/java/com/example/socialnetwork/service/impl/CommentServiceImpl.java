@@ -178,11 +178,10 @@ public class CommentServiceImpl implements CommentService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post is deleted");
         }
 
-        if (comment.getUser().getId().equals(user.getId())) {
-            commentRepository.delete(comment);
-        } else {
+        if (!comment.getUser().getId().equals(user.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "It's not your comment");
         }
+        commentRepository.delete(comment);
 
         return Response.builder()
                 .responseMessage("Deleted comment successfully")

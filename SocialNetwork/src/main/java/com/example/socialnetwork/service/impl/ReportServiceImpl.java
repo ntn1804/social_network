@@ -10,9 +10,11 @@ import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -34,86 +36,79 @@ public class ReportServiceImpl implements ReportService {
     @Autowired
     private CommentRepository commentRepository;
 
-    @Override
     public long countPostByCreatedDate() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         List<Post> recentPosts = new ArrayList<>();
+        List<Post> postList = postRepository.findAllByUserId(user.getId());
 
-        if (user.isPresent()) {
-            List<Post> postList = postRepository.findAllByUserId(user.get().getId());
-
-            for (Post post : postList) {
-                if (post.getCreatedDate().isAfter(LocalDateTime.now().minusDays(7))) {
-                    recentPosts.add(post);
-                }
+        for (Post post : postList) {
+            if (post.getCreatedDate().isAfter(LocalDateTime.now().minusDays(7))) {
+                recentPosts.add(post);
             }
         }
         return recentPosts.size();
     }
 
-    @Override
     public long countFriendByCreatedDate() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         List<Friend> recentFriends = new ArrayList<>();
+        List<Friend> friendList = friendRepository.friendList(user.getId());
 
-        if(user.isPresent()) {
-            List<Friend> friendList = friendRepository.friendList(user.get().getId());
-
-            for (Friend friend : friendList) {
-                if (friend.getCreatedDate().isAfter(LocalDateTime.now().minusDays(7))) {
-                    recentFriends.add(friend);
-                }
+        for (Friend friend : friendList) {
+            if (friend.getCreatedDate().isAfter(LocalDateTime.now().minusDays(7))) {
+                recentFriends.add(friend);
             }
         }
         return recentFriends.size();
     }
 
-    @Override
     public long countReactByCreatedDate() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         List<React> recentReacts = new ArrayList<>();
+        List<React> reactList = reactRepository.findAllByUserId(user.getId());
 
-        if (user.isPresent()) {
-            List<React> reactList = reactRepository.findAllByUserId(user.get().getId());
-
-            for (React react : reactList) {
-                if (react.getCreatedDate().isAfter(LocalDateTime.now().minusDays(7))) {
-                    recentReacts.add(react);
-                }
+        for (React react : reactList) {
+            if (react.getCreatedDate().isAfter(LocalDateTime.now().minusDays(7))) {
+                recentReacts.add(react);
             }
         }
-            return recentReacts.size();
+        return recentReacts.size();
     }
 
-    @Override
     public long countCommentByCreatedDate() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
-        Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+        User user = optionalUser
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         List<Comment> recentComments = new ArrayList<>();
+        List<Comment> commentList = commentRepository.findAllByUserId(user.getId());
 
-        if (user.isPresent()) {
-            List<Comment> commentList = commentRepository.findAllByUserId(user.get().getId());
-
-            for (Comment comment : commentList) {
-                if (comment.getCreatedDate().isAfter(LocalDateTime.now().minusDays(7))) {
-                    recentComments.add(comment);
-                }
+        for (Comment comment : commentList) {
+            if (comment.getCreatedDate().isAfter(LocalDateTime.now().minusDays(7))) {
+                recentComments.add(comment);
             }
         }
         return recentComments.size();
     }
 
+    @Override
     public void generateExcel(HttpServletResponse response) throws Exception {
 
         response.setContentType("application/octet-stream");

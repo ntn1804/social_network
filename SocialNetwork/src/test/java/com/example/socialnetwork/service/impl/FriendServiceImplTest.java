@@ -1,16 +1,11 @@
 package com.example.socialnetwork.service.impl;
 
 import com.example.socialnetwork.config.UserInfoUserDetails;
-import com.example.socialnetwork.dto.request.CommentRequestDTO;
-import com.example.socialnetwork.dto.response.CommentResponseDTO;
+import com.example.socialnetwork.dto.response.FriendResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
-import com.example.socialnetwork.entity.Comment;
 import com.example.socialnetwork.entity.Friend;
-import com.example.socialnetwork.entity.Post;
 import com.example.socialnetwork.entity.User;
-import com.example.socialnetwork.repository.CommentRepository;
 import com.example.socialnetwork.repository.FriendRepository;
-import com.example.socialnetwork.repository.PostRepository;
 import com.example.socialnetwork.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,26 +20,21 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Instant;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CommentServiceImplTest {
+class FriendServiceImplTest {
     @InjectMocks
-    private CommentServiceImpl commentService;
+    private FriendServiceImpl friendService;
     @Mock
     private UserRepository userRepository;
-    @Mock
-    private PostRepository postRepository;
-    @Mock
-    private CommentRepository commentRepository;
     @Mock
     private FriendRepository friendRepository;
 
     @Test
-    void testComment_DeletedPost() {
+    void testSendFriendRequest_ToYourself() {
         User user = User.builder()
                 .id(1L)
                 .username("testUsername")
@@ -57,49 +47,6 @@ class CommentServiceImplTest {
                 .build();
 
         User friend = User.builder()
-                .id(2L)
-                .username("friendName")
-                .email("friendEmail")
-                .fullName("friendFullname")
-                .dateOfBirth(Date.from(Instant.now()))
-                .job("fuho")
-                .place("vietnam")
-                .role("USER")
-                .build();
-
-        Optional<User> optionalUser = Optional.of(user);
-
-        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
-
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        when((authentication.getPrincipal())).thenReturn(userDetails);
-
-        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
-
-        Post post = Post.builder()
-                .id(1L)
-                .user(friend)
-                .isDeleted(1)
-                .privacy("public")
-                .build();
-
-        Optional<Post> optionalPost = Optional.of(post);
-
-        when(postRepository.findById(post.getId())).thenReturn(optionalPost);
-
-        assertThrows(ResponseStatusException.class, () -> {
-            commentService.comment(post.getId(), null);
-        });
-    }
-
-    @Test
-    void testComment_PostNotFound() {
-        User user = User.builder()
                 .id(1L)
                 .username("testUsername")
                 .email("testEmail")
@@ -110,18 +57,8 @@ class CommentServiceImplTest {
                 .role("USER")
                 .build();
 
-        User friend = User.builder()
-                .id(2L)
-                .username("friendName")
-                .email("friendEmail")
-                .fullName("friendFullname")
-                .dateOfBirth(Date.from(Instant.now()))
-                .job("fuho")
-                .place("vietnam")
-                .role("USER")
-                .build();
-
         Optional<User> optionalUser = Optional.of(user);
+        Optional<User> optionalFriend = Optional.of(friend);
 
         UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
 
@@ -134,25 +71,15 @@ class CommentServiceImplTest {
         when((authentication.getPrincipal())).thenReturn(userDetails);
 
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
-
-        Post post = Post.builder()
-                .id(1L)
-                .user(friend)
-                .isDeleted(0)
-                .privacy("only me")
-                .build();
-
-        Optional<Post> optionalPost = Optional.of(post);
-
-        when(postRepository.findById(post.getId())).thenReturn(optionalPost);
+        when(userRepository.findById(friend.getId())).thenReturn(optionalFriend);
 
         assertThrows(ResponseStatusException.class, () -> {
-            commentService.comment(post.getId(), null);
+            friendService.sendFriendRequest(friend.getId());
         });
     }
 
     @Test
-    void testComment_NotFriends() {
+    void testSendFriendRequest_AlreadyFriends() {
         User user = User.builder()
                 .id(1L)
                 .username("testUsername")
@@ -166,50 +93,6 @@ class CommentServiceImplTest {
 
         User user2 = User.builder()
                 .id(2L)
-                .username("friendName")
-                .email("friendEmail")
-                .fullName("friendFullname")
-                .dateOfBirth(Date.from(Instant.now()))
-                .job("fuho")
-                .place("vietnam")
-                .role("USER")
-                .build();
-
-        Optional<User> optionalUser = Optional.of(user);
-
-        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
-
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        when((authentication.getPrincipal())).thenReturn(userDetails);
-
-        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
-
-        Post post = Post.builder()
-                .id(1L)
-                .user(user2)
-                .isDeleted(0)
-                .privacy("public")
-                .build();
-        Optional<Post> optionalPost = Optional.of(post);
-        when(postRepository.findById(post.getId())).thenReturn(optionalPost);
-
-        when(friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), post.getUser().getId()))
-                .thenReturn(null);
-
-        assertThrows(ResponseStatusException.class, () -> {
-            commentService.comment(post.getId(), null);
-        });
-    }
-
-    @Test
-    void testComment_SuccessCase() {
-        User user = User.builder()
-                .id(1L)
                 .username("testUsername")
                 .email("testEmail")
                 .fullName("testFullname")
@@ -219,18 +102,8 @@ class CommentServiceImplTest {
                 .role("USER")
                 .build();
 
-        User user2 = User.builder()
-                .id(2L)
-                .username("friendName")
-                .email("friendEmail")
-                .fullName("friendFullname")
-                .dateOfBirth(Date.from(Instant.now()))
-                .job("fuho")
-                .place("vietnam")
-                .role("USER")
-                .build();
-
         Optional<User> optionalUser = Optional.of(user);
+        Optional<User> optionalFriend = Optional.of(user2);
 
         UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
 
@@ -243,27 +116,122 @@ class CommentServiceImplTest {
         when((authentication.getPrincipal())).thenReturn(userDetails);
 
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
-
-        Post post = Post.builder()
-                .id(1L)
-                .user(user2)
-                .isDeleted(0)
-                .privacy("public")
-                .build();
-        Optional<Post> optionalPost = Optional.of(post);
-        when(postRepository.findById(post.getId())).thenReturn(optionalPost);
+        when(userRepository.findById(user2.getId())).thenReturn(optionalFriend);
 
         Friend friend = Friend.builder()
+                .requestStatus("Accepted")
                 .build();
-        when(friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), post.getUser().getId()))
-                .thenReturn(friend);
+        when(friendRepository.findByUserIdAndFriendId(user.getId(), user2.getId())).thenReturn(friend);
 
-        Response result = commentService.comment(post.getId(), new CommentRequestDTO("hihi"));
+        assertThrows(ResponseStatusException.class, () -> {
+            friendService.sendFriendRequest(user2.getId());
+        });
+    }
+
+    @Test
+    void testSendFriendRequest_AlreadySent() {
+        User user = User.builder()
+                .id(1L)
+                .username("testUsername")
+                .email("testEmail")
+                .fullName("testFullname")
+                .dateOfBirth(Date.from(Instant.now()))
+                .job("fuho")
+                .place("vietnam")
+                .role("USER")
+                .build();
+
+        User user2 = User.builder()
+                .id(2L)
+                .username("testUsername")
+                .email("testEmail")
+                .fullName("testFullname")
+                .dateOfBirth(Date.from(Instant.now()))
+                .job("fuho")
+                .place("vietnam")
+                .role("USER")
+                .build();
+
+        Optional<User> optionalUser = Optional.of(user);
+        Optional<User> optionalFriend = Optional.of(user2);
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when((authentication.getPrincipal())).thenReturn(userDetails);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(userRepository.findById(user2.getId())).thenReturn(optionalFriend);
+
+        Friend friend = Friend.builder()
+                .user(user)
+                .requestStatus("Pending")
+                .build();
+        when(friendRepository.findByUserIdAndFriendId(user.getId(), user2.getId())).thenReturn(friend);
+
+        assertThrows(ResponseStatusException.class, () -> {
+            friendService.sendFriendRequest(user2.getId());
+        });
+    }
+
+    @Test
+    void testSendFriendRequest_SuccessCase1() {
+        User user = User.builder()
+                .id(1L)
+                .username("testUsername")
+                .email("testEmail")
+                .fullName("testFullname")
+                .dateOfBirth(Date.from(Instant.now()))
+                .job("fuho")
+                .place("vietnam")
+                .role("USER")
+                .build();
+
+        User user2 = User.builder()
+                .id(2L)
+                .username("testUsername")
+                .email("testEmail")
+                .fullName("testFullname")
+                .dateOfBirth(Date.from(Instant.now()))
+                .job("fuho")
+                .place("vietnam")
+                .role("USER")
+                .build();
+
+        Optional<User> optionalUser = Optional.of(user);
+        Optional<User> optionalFriend = Optional.of(user2);
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when((authentication.getPrincipal())).thenReturn(userDetails);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(userRepository.findById(user2.getId())).thenReturn(optionalFriend);
+
+        Friend friend = Friend.builder()
+                .user(user2)
+                .friend(user)
+                .requestStatus("Pending")
+                .build();
+        when(friendRepository.findByUserIdAndFriendId(user.getId(), user2.getId())).thenReturn(friend);
+
+        Response result = friendService.sendFriendRequest(user2.getId());
         assertNotNull(result);
     }
 
     @Test
-    void testEditComment_DeletedPost() {
+    void testSendFriendRequest_SuccessCase2() {
         User user = User.builder()
                 .id(1L)
                 .username("testUsername")
@@ -277,108 +245,6 @@ class CommentServiceImplTest {
 
         User user2 = User.builder()
                 .id(2L)
-                .username("friendName")
-                .email("friendEmail")
-                .fullName("friendFullname")
-                .dateOfBirth(Date.from(Instant.now()))
-                .job("fuho")
-                .place("vietnam")
-                .role("USER")
-                .build();
-
-        Optional<User> optionalUser = Optional.of(user);
-
-        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
-
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        when((authentication.getPrincipal())).thenReturn(userDetails);
-
-        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
-
-        Post post = Post.builder()
-                .id(1L)
-                .isDeleted(1)
-                .build();
-
-        Comment comment = Comment.builder()
-                .id(1L)
-                .post(post)
-                .user(user2)
-                .isDeleted(0)
-                .build();
-        Optional<Comment> optionalComment = Optional.of(comment);
-        when(commentRepository.findById(comment.getId())).thenReturn(optionalComment);
-
-        assertThrows(ResponseStatusException.class, () -> {
-            commentService.editComment(comment.getId(), null);
-        });
-    }
-
-    @Test
-    void testEditComment_NotYourComment() {
-        User user = User.builder()
-                .id(1L)
-                .username("testUsername")
-                .email("testEmail")
-                .fullName("testFullname")
-                .dateOfBirth(Date.from(Instant.now()))
-                .job("fuho")
-                .place("vietnam")
-                .role("USER")
-                .build();
-
-        User user2 = User.builder()
-                .id(2L)
-                .username("friendName")
-                .email("friendEmail")
-                .fullName("friendFullname")
-                .dateOfBirth(Date.from(Instant.now()))
-                .job("fuho")
-                .place("vietnam")
-                .role("USER")
-                .build();
-
-        Optional<User> optionalUser = Optional.of(user);
-
-        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
-
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        when((authentication.getPrincipal())).thenReturn(userDetails);
-
-        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
-
-        Post post = Post.builder()
-                .id(1L)
-                .build();
-
-        Comment comment = Comment.builder()
-                .id(1L)
-                .post(post)
-                .user(user2)
-                .isDeleted(0)
-                .build();
-        Optional<Comment> optionalComment = Optional.of(comment);
-        when(commentRepository.findById(comment.getId())).thenReturn(optionalComment);
-
-        assertThrows(ResponseStatusException.class, () -> {
-            commentService.editComment(comment.getId(), null);
-        });
-    }
-
-    @Test
-    void testEditComment_BlankComment() {
-        User user = User.builder()
-                .id(1L)
                 .username("testUsername")
                 .email("testEmail")
                 .fullName("testFullname")
@@ -389,6 +255,7 @@ class CommentServiceImplTest {
                 .build();
 
         Optional<User> optionalUser = Optional.of(user);
+        Optional<User> optionalFriend = Optional.of(user2);
 
         UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
 
@@ -401,71 +268,15 @@ class CommentServiceImplTest {
         when((authentication.getPrincipal())).thenReturn(userDetails);
 
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(userRepository.findById(user2.getId())).thenReturn(optionalFriend);
+        when(friendRepository.findByUserIdAndFriendId(user.getId(), user2.getId())).thenReturn(null);
 
-        Post post = Post.builder()
-                .id(1L)
-                .build();
-
-        Comment comment = Comment.builder()
-                .id(1L)
-                .post(post)
-                .user(user)
-                .isDeleted(0)
-                .build();
-        Optional<Comment> optionalComment = Optional.of(comment);
-        when(commentRepository.findById(comment.getId())).thenReturn(optionalComment);
-
-        assertThrows(ResponseStatusException.class, () -> {
-            commentService.editComment(comment.getId(), new CommentRequestDTO(""));
-        });
-    }
-
-    @Test
-    void testEditComment_SuccessCase() {
-        User user = User.builder()
-                .id(1L)
-                .username("testUsername")
-                .email("testEmail")
-                .fullName("testFullname")
-                .dateOfBirth(Date.from(Instant.now()))
-                .job("fuho")
-                .place("vietnam")
-                .role("USER")
-                .build();
-
-        Optional<User> optionalUser = Optional.of(user);
-
-        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
-
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        when((authentication.getPrincipal())).thenReturn(userDetails);
-
-        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
-
-        Post post = Post.builder()
-                .id(1L)
-                .build();
-
-        Comment comment = Comment.builder()
-                .id(1L)
-                .post(post)
-                .user(user)
-                .isDeleted(0)
-                .build();
-        Optional<Comment> optionalComment = Optional.of(comment);
-        when(commentRepository.findById(comment.getId())).thenReturn(optionalComment);
-
-        Response result = commentService.editComment(comment.getId(), new CommentRequestDTO("hihi"));
+        Response result = friendService.sendFriendRequest(user2.getId());
         assertNotNull(result);
     }
 
     @Test
-    void testGetCommentPost_DeletedPost() {
+    void testConfirmFriendRequest_AcceptByYourself() {
         User user = User.builder()
                 .id(1L)
                 .username("testUsername")
@@ -477,7 +288,14 @@ class CommentServiceImplTest {
                 .role("USER")
                 .build();
 
+        Friend friend = Friend.builder()
+                .id(1L)
+                .user(user)
+                .requestStatus("Pending")
+                .build();
+
         Optional<User> optionalUser = Optional.of(user);
+        Optional<Friend> optionalFriend = Optional.of(friend);
 
         UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
 
@@ -490,21 +308,54 @@ class CommentServiceImplTest {
         when((authentication.getPrincipal())).thenReturn(userDetails);
 
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
-
-        Post post = Post.builder()
-                .id(1L)
-                .isDeleted(1)
-                .build();
-        Optional<Post> optionalPost = Optional.of(post);
-        when(postRepository.findById(post.getId())).thenReturn(optionalPost);
+        when(friendRepository.findById(friend.getId())).thenReturn(optionalFriend);
 
         assertThrows(ResponseStatusException.class, () -> {
-            commentService.getCommentPost(post.getId());
+            friendService.confirmFriendRequest(friend.getId());
         });
     }
 
     @Test
-    void testGetCommentPost_NotFriends() {
+    void testConfirmFriendRequest_AlreadyFriends() {
+        User user = User.builder()
+                .id(1L)
+                .username("testUsername")
+                .email("testEmail")
+                .fullName("testFullname")
+                .dateOfBirth(Date.from(Instant.now()))
+                .job("fuho")
+                .place("vietnam")
+                .role("USER")
+                .build();
+
+        Friend friend = Friend.builder()
+                .id(1L)
+                .requestStatus("Accepted")
+                .build();
+
+        Optional<User> optionalUser = Optional.of(user);
+        Optional<Friend> optionalFriend = Optional.of(friend);
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when((authentication.getPrincipal())).thenReturn(userDetails);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(friendRepository.findById(friend.getId())).thenReturn(optionalFriend);
+
+        assertThrows(ResponseStatusException.class, () -> {
+            friendService.confirmFriendRequest(friend.getId());
+        });
+    }
+
+    @Test
+    void testConfirmFriendRequest_SuccessCase() {
         User user = User.builder()
                 .id(1L)
                 .username("testUsername")
@@ -527,50 +378,14 @@ class CommentServiceImplTest {
                 .role("USER")
                 .build();
 
-        Optional<User> optionalUser = Optional.of(user);
-
-        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
-
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        when((authentication.getPrincipal())).thenReturn(userDetails);
-
-        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
-
-        Post post = Post.builder()
+        Friend friend = Friend.builder()
                 .id(1L)
                 .user(user2)
-                .isDeleted(0)
-                .build();
-        Optional<Post> optionalPost = Optional.of(post);
-        when(postRepository.findById(post.getId())).thenReturn(optionalPost);
-
-        when(friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), post.getUser().getId()))
-                .thenReturn(null);
-
-        assertThrows(ResponseStatusException.class, () -> {
-            commentService.getCommentPost(post.getId());
-        });
-    }
-
-    @Test
-    void testGetCommentPost_SuccessCase() {
-        User user = User.builder()
-                .id(1L)
-                .username("testUsername")
-                .email("testEmail")
-                .fullName("testFullname")
-                .dateOfBirth(Date.from(Instant.now()))
-                .job("fuho")
-                .place("vietnam")
-                .role("USER")
+                .requestStatus("Pending")
                 .build();
 
         Optional<User> optionalUser = Optional.of(user);
+        Optional<Friend> optionalFriend = Optional.of(friend);
 
         UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
 
@@ -583,34 +398,85 @@ class CommentServiceImplTest {
         when((authentication.getPrincipal())).thenReturn(userDetails);
 
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(friendRepository.findById(friend.getId())).thenReturn(optionalFriend);
 
-        Post post = Post.builder()
-                .id(1L)
-                .user(user)
-                .isDeleted(0)
-                .build();
-        Optional<Post> optionalPost = Optional.of(post);
-        when(postRepository.findById(post.getId())).thenReturn(optionalPost);
-
-        Comment comment = Comment.builder()
-                .user(user)
-                .content("test")
-                .build();
-
-        Comment comment2 = Comment.builder()
-                .user(user)
-                .content("test")
-                .build();
-        List<Comment> commentList = new ArrayList<>(Arrays.asList(comment, comment2));
-        when(commentRepository.findAllByPostId(post.getId())).thenReturn(commentList);
-
-        List<CommentResponseDTO> result = commentService.getCommentPost(post.getId());
+        Response result = friendService.confirmFriendRequest(friend.getId());
         assertNotNull(result);
     }
 
     @Test
-    void testDeleteComment_DeletedComment() {
+    void testGetFriendRequest() {
         User user = User.builder()
+                .id(1L)
+                .username("testUsername")
+                .email("testEmail")
+                .fullName("testFullname")
+                .dateOfBirth(Date.from(Instant.now()))
+                .job("fuho")
+                .place("vietnam")
+                .role("USER")
+                .build();
+
+        User friend = User.builder()
+                .id(2L)
+                .username("testUsername")
+                .email("testEmail")
+                .fullName("testFullname")
+                .dateOfBirth(Date.from(Instant.now()))
+                .job("fuho")
+                .place("vietnam")
+                .role("USER")
+                .build();
+
+        User friend2 = User.builder()
+                .id(3L)
+                .username("testUsername")
+                .email("testEmail")
+                .fullName("testFullname")
+                .dateOfBirth(Date.from(Instant.now()))
+                .job("fuho")
+                .place("vietnam")
+                .role("USER")
+                .build();
+
+        Optional<User> optionalUser = Optional.of(user);
+        Optional<User> optionalFriend = Optional.of(friend);
+        Optional<User> optionalFriend2 = Optional.of(friend2);
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when((authentication.getPrincipal())).thenReturn(userDetails);
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+
+        List<Long> friendIds = new ArrayList<>(Arrays.asList(1L, 2L, 3L));
+        when(friendRepository.findFriendRequestIdsByUserId(user.getId())).thenReturn(friendIds);
+        when(userRepository.findById(friend.getId())).thenReturn(optionalFriend);
+        when(userRepository.findById(friend2.getId())).thenReturn(optionalFriend2);
+
+        List<FriendResponseDTO> friendResponseDTOList = friendService.getFriendRequest();
+        assertNotNull(friendResponseDTOList);
+    }
+
+    @Test
+    void testDeleteFriend_Yourself() {
+        User user = User.builder()
+                .id(1L)
+                .username("testUsername")
+                .email("testEmail")
+                .fullName("testFullname")
+                .dateOfBirth(Date.from(Instant.now()))
+                .job("fuho")
+                .place("vietnam")
+                .role("USER")
+                .build();
+
+        User user2 = User.builder()
                 .id(1L)
                 .username("testUsername")
                 .email("testEmail")
@@ -632,24 +498,15 @@ class CommentServiceImplTest {
         SecurityContextHolder.setContext(securityContext);
 
         when((authentication.getPrincipal())).thenReturn(userDetails);
-
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
 
-        Comment comment = Comment.builder()
-                .id(1L)
-                .content("test")
-                .isDeleted(1)
-                .build();
-        Optional<Comment> optionalComment = Optional.of(comment);
-        when(commentRepository.findById(comment.getId())).thenReturn(optionalComment);
-
         assertThrows(ResponseStatusException.class, () -> {
-            commentService.deleteComment(comment.getId());
+            friendService.deleteFriend(user2.getId());
         });
     }
 
     @Test
-    void testDeleteComment_DeletedPost() {
+    void testDeleteFriend_FriendNull() {
         User user = User.builder()
                 .id(1L)
                 .username("testUsername")
@@ -683,31 +540,16 @@ class CommentServiceImplTest {
         SecurityContextHolder.setContext(securityContext);
 
         when((authentication.getPrincipal())).thenReturn(userDetails);
-
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
-
-        Post post = Post.builder()
-                .id(1L)
-                .isDeleted(1)
-                .build();
-
-        Comment comment = Comment.builder()
-                .id(1L)
-                .post(post)
-                .user(user2)
-                .content("test")
-                .isDeleted(0)
-                .build();
-        Optional<Comment> optionalComment = Optional.of(comment);
-        when(commentRepository.findById(comment.getId())).thenReturn(optionalComment);
+        when(friendRepository.findByUserIdAndFriendId(user.getId(), user2.getId())).thenReturn(null);
 
         assertThrows(ResponseStatusException.class, () -> {
-            commentService.deleteComment(comment.getId());
+            friendService.deleteFriend(user2.getId());
         });
     }
 
     @Test
-    void testDeleteComment_NotYourComment() {
+    void testDeleteFriend_SuccessCase() {
         User user = User.builder()
                 .id(1L)
                 .username("testUsername")
@@ -741,83 +583,12 @@ class CommentServiceImplTest {
         SecurityContextHolder.setContext(securityContext);
 
         when((authentication.getPrincipal())).thenReturn(userDetails);
-
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
 
-        Post post = Post.builder()
-                .id(1L)
-                .isDeleted(0)
-                .build();
+        Friend friend = Friend.builder().build();
+        when(friendRepository.findByUserIdAndFriendId(user.getId(), user2.getId())).thenReturn(friend);
 
-        Comment comment = Comment.builder()
-                .id(1L)
-                .post(post)
-                .user(user2)
-                .content("test")
-                .isDeleted(0)
-                .build();
-        Optional<Comment> optionalComment = Optional.of(comment);
-        when(commentRepository.findById(comment.getId())).thenReturn(optionalComment);
-
-        assertThrows(ResponseStatusException.class, () -> {
-            commentService.deleteComment(comment.getId());
-        });
-    }
-
-    @Test
-    void testDeleteComment_SuccessCase() {
-        User user = User.builder()
-                .id(1L)
-                .username("testUsername")
-                .email("testEmail")
-                .fullName("testFullname")
-                .dateOfBirth(Date.from(Instant.now()))
-                .job("fuho")
-                .place("vietnam")
-                .role("USER")
-                .build();
-
-        User user2 = User.builder()
-                .id(2L)
-                .username("testUsername")
-                .email("testEmail")
-                .fullName("testFullname")
-                .dateOfBirth(Date.from(Instant.now()))
-                .job("fuho")
-                .place("vietnam")
-                .role("USER")
-                .build();
-
-        Optional<User> optionalUser = Optional.of(user);
-
-        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
-
-        Authentication authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        when((authentication.getPrincipal())).thenReturn(userDetails);
-
-        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
-
-        Post post = Post.builder()
-                .id(1L)
-                .isDeleted(0)
-                .build();
-
-        Comment comment = Comment.builder()
-                .id(1L)
-                .post(post)
-                .user(user)
-                .content("test")
-                .isDeleted(0)
-                .build();
-        Optional<Comment> optionalComment = Optional.of(comment);
-        when(commentRepository.findById(comment.getId())).thenReturn(optionalComment);
-
-        Response result = commentService.deleteComment(comment.getId());
+        Response result = friendService.deleteFriend(user2.getId());
         assertNotNull(result);
     }
 }
