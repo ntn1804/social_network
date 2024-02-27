@@ -226,9 +226,6 @@ class ReportServiceImplTest {
         // Mock the necessary method calls
         when(response.getOutputStream()).thenReturn(outputStream);
 
-        // Create an instance of the class under test
-//        ExcelGenerator excelGenerator = new ExcelGenerator();
-
         // Call the method under test
         reportService.generateExcel(response);
 

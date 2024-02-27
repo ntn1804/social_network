@@ -16,11 +16,16 @@ class CommentRequestDTOTest {
     CommentRequestDTO commentRequestDTO;
 
     @Test
-    void getContent() {
+    void testGetContent() {
         commentRequestDTO.setContent("abc");
 
         String result = commentRequestDTO.getContent();
         assertEquals("abc",result);
+    }
 
+    @Test
+    void testNoArgsConstructor() {
+        CommentRequestDTO result = new CommentRequestDTO();
+        assertNotNull(result);
     }
 }
