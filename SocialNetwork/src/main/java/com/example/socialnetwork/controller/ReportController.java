@@ -1,6 +1,7 @@
 package com.example.socialnetwork.controller;
 
 import com.example.socialnetwork.service.ReportService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;

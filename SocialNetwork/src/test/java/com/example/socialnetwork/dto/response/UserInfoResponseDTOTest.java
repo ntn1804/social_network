@@ -21,7 +21,6 @@ class UserInfoResponseDTOTest {
         responseDTO.setEmail("test");
         responseDTO.setUsername("test");
         responseDTO.setFullName("test");
-        responseDTO.setDateOfBirth(Date.from(Instant.now()));
         responseDTO.setJob("test");
         responseDTO.setPlace("test");
 
@@ -31,14 +30,12 @@ class UserInfoResponseDTOTest {
         String email = responseDTO.getEmail();
         String username = responseDTO.getEmail();
         String fullName = responseDTO.getEmail();
-        Date dateOfBirth = responseDTO.getDateOfBirth();
         String job = responseDTO.getEmail();
         String place = responseDTO.getEmail();
 
         assertEquals("test", email);
         assertEquals("test", username);
         assertEquals("test", fullName);
-        assertEquals(Date.from(Instant.now()), dateOfBirth);
         assertEquals("test", job);
         assertEquals("test", place);
     }
