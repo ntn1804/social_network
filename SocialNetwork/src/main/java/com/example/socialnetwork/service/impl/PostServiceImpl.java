@@ -41,6 +41,9 @@ public class PostServiceImpl implements PostService {
     @Autowired
     private ReactRepository reactRepository;
 
+    private final static String companyFolder = "C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\Post\\";
+    private final static String homeFolder = "C:\\Users\\MY PC\\Desktop\\Works\\MyFiles\\";
+
     @Override
     public Response createPost(MultipartFile[] files, PostRequestDTO requestDTO) {
 
@@ -98,13 +101,13 @@ public class PostServiceImpl implements PostService {
             String fileName = uuid.toString();
 
             try {
-                Files.copy(file.getInputStream(), Path.of("C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\Post\\" + fileName + ".jpg"));
+                Files.copy(file.getInputStream(), Path.of(homeFolder + fileName + ".jpg"));
             } catch (IOException e) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error creating post");
             }
 
             PostImage postImage = PostImage.builder()
-                    .filePath("C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\Post\\" + fileName)
+                    .filePath(homeFolder + fileName)
                     .fileName(fileName)
                     .isDeleted(0)
                     .post(post)

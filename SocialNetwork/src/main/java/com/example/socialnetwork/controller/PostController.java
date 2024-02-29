@@ -4,8 +4,6 @@ import com.example.socialnetwork.dto.request.PostPrivacyDTO;
 import com.example.socialnetwork.dto.request.PostRequestDTO;
 import com.example.socialnetwork.dto.response.PostResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
-import com.example.socialnetwork.dto.response.ShowAllPostResponseDTO;
-import com.example.socialnetwork.entity.Post;
 import com.example.socialnetwork.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -23,15 +21,15 @@ public class PostController {
     @Autowired
     private PostService postService;
 
-    @PostMapping(value ="/create-post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value ="/create-post", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Response> createPost(@RequestPart(value = "post-image", required = false) MultipartFile[] files,
-                                               @RequestParam(value = "post-text", required = false) PostRequestDTO requestDTO) throws IOException {
+                                               @RequestPart(value = "post-text", required = false) PostRequestDTO requestDTO) throws IOException {
         return ResponseEntity.ok(postService.createPost(files, requestDTO));
     }
 
     @PutMapping("/edit-post/{postId}")
     public ResponseEntity<Response> editPost(@PathVariable("postId") Long postId,
-                                             @RequestParam(value = "post-image", required = false) MultipartFile[] files,
+                                             @RequestPart(value = "post-image", required = false) MultipartFile[] files,
                                              @RequestParam(value = "post-text", required = false) PostRequestDTO requestDTO,
                                               @RequestParam(value = "post-privacy", required = false) PostPrivacyDTO privacyDTO) {
         return ResponseEntity.ok(postService.editPost(postId, files, requestDTO, privacyDTO));

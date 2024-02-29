@@ -33,7 +33,8 @@ public class ImageServiceImpl implements ImageService {
     @Autowired
     private UserRepository userRepository;
 
-    private final String folderPath = "C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\";
+    private final String companyFolder = "C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\";
+    private final String homeFolder = "C:\\Users\\MY PC\\Desktop\\Works\\MyFiles\\";
 
     public Response uploadAvatar(MultipartFile file) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -55,7 +56,7 @@ public class ImageServiceImpl implements ImageService {
             UUID uuid = UUID.randomUUID();
             String stringUuid = uuid.toString();
 
-            String filePath = folderPath + stringUuid;
+            String filePath = homeFolder + stringUuid;
 
             imageRepository.save(Avatar.builder()
                     .name(stringUuid)

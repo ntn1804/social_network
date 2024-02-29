@@ -24,12 +24,12 @@ public class ProfileController {
     @Autowired
     private InfoService infoService;
 
-    @PostMapping(value = "/upload-avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/upload-avatar", consumes = "multipart/form-data")
     public ResponseEntity<Response> uploadAvatar(@RequestPart("image") MultipartFile file) throws IOException {
         return ResponseEntity.ok(imageService.uploadAvatar(file));
     }
 
-    @PostMapping("/update-info")
+    @PostMapping(value = "/update-info")
     public ResponseEntity<UserInfoResponseDTO> updateInfo(@Valid @RequestBody UserInfoRequestDTO requestDTO){
         return ResponseEntity.ok(infoService.updateInfo(requestDTO));
     }
