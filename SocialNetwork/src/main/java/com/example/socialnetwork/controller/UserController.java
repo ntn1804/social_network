@@ -39,7 +39,7 @@ public class UserController {
         return ResponseEntity.ok(userService.forgotPassword(requestDTO));
     }
 
-    @GetMapping("/reset-password/{token}")
+    @PutMapping("/reset-password/{token}")
     public ResponseEntity<Response> resetPassword(@PathVariable("token") String tokenResetPassword,
                                 @RequestBody ResetPasswordDTO requestDTO) {
         return ResponseEntity.ok(userService.resetPassword(tokenResetPassword, requestDTO));

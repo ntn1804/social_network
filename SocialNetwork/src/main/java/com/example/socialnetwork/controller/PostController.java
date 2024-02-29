@@ -8,6 +8,7 @@ import com.example.socialnetwork.dto.response.ShowAllPostResponseDTO;
 import com.example.socialnetwork.entity.Post;
 import com.example.socialnetwork.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,11 +23,9 @@ public class PostController {
     @Autowired
     private PostService postService;
 
-    @PostMapping("/create-post")
-    public ResponseEntity<Response> createPost(@RequestParam(value = "post-image",
-                                                    required = false) MultipartFile[] files,
-                                               @RequestParam(value = "post-text",
-                                                       required = false) PostRequestDTO requestDTO) throws IOException {
+    @PostMapping(value ="/create-post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Response> createPost(@RequestPart(value = "post-image", required = false) MultipartFile[] files,
+                                               @RequestParam(value = "post-text", required = false) PostRequestDTO requestDTO) throws IOException {
         return ResponseEntity.ok(postService.createPost(files, requestDTO));
     }
 

@@ -7,6 +7,7 @@ import com.example.socialnetwork.service.InfoService;
 import com.example.socialnetwork.service.ImageService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,14 +24,14 @@ public class ProfileController {
     @Autowired
     private InfoService infoService;
 
+    @PostMapping(value = "/upload-avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Response> uploadAvatar(@RequestPart("image") MultipartFile file) throws IOException {
+        return ResponseEntity.ok(imageService.uploadAvatar(file));
+    }
+
     @PostMapping("/update-info")
     public ResponseEntity<UserInfoResponseDTO> updateInfo(@Valid @RequestBody UserInfoRequestDTO requestDTO){
         return ResponseEntity.ok(infoService.updateInfo(requestDTO));
-    }
-
-    @PostMapping("/upload-avatar")
-    public ResponseEntity<Response> uploadAvatar(@RequestParam("image") MultipartFile file) throws IOException {
-        return ResponseEntity.ok(imageService.uploadAvatar(file));
     }
 
     @GetMapping("/my-avatar")
