@@ -19,7 +19,7 @@ public class UserController {
     @Autowired
     private OtpService otpService;
 
-    @PostMapping("/register")
+    @PostMapping
     public ResponseEntity<RegistrationResponseDTO> registration(@Valid @RequestBody RegistrationRequestDTO requestDTO) {
         return ResponseEntity.ok(userService.registerUser(requestDTO));
     }
@@ -29,19 +29,19 @@ public class UserController {
         return ResponseEntity.ok(otpService.sendOtp(requestDTO));
     }
 
-    @PostMapping("/validateOtp")
+    @PostMapping("/validation")
     public ResponseEntity<TokenResponseDTO> validateOtpAndGetToken(@RequestBody OtpValidationRequest requestDTO) {
         return ResponseEntity.ok(otpService.validateOtp(requestDTO));
     }
 
-    @PostMapping("/forgot-password")
+    @PostMapping("/password")
     public ResponseEntity<ForgotPasswordResponseDTO> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDTO requestDTO) {
         return ResponseEntity.ok(userService.forgotPassword(requestDTO));
     }
 
-    @PutMapping("/reset-password/{token}")
+    @PutMapping("/password/{token}")
     public ResponseEntity<Response> resetPassword(@PathVariable("token") String tokenResetPassword,
-                                @RequestBody ResetPasswordDTO requestDTO) {
+                                @RequestBody @Valid ResetPasswordDTO requestDTO) {
         return ResponseEntity.ok(userService.resetPassword(tokenResetPassword, requestDTO));
     }
 }

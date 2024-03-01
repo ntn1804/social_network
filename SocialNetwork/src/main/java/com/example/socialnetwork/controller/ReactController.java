@@ -8,13 +8,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/react")
+@RequestMapping("/api/v1/reacts")
 public class ReactController {
 
     @Autowired
     private ReactService reactService;
 
-    @PostMapping("/react-post/{postId}")
+    @PostMapping("/{postId}")
     public ResponseEntity<Response> reactPost(@PathVariable("postId") Long postId) {
         return ResponseEntity.ok(reactService.reactPost(postId));
     }

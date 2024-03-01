@@ -69,7 +69,7 @@ public class OtpServiceImpl implements OtpService {
     public TokenResponseDTO validateOtp(OtpValidationRequest requestDTO){
         Otp otp = otpRepository.findByUsername(requestDTO.getUsername());
         if(otp == null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Login to get OTP");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid OTP");
         }
         if (!otp.getOtpCode().equals(requestDTO.getOtpCode())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid OTP");

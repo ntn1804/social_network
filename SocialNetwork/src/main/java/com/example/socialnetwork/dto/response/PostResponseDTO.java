@@ -10,7 +10,8 @@ import java.util.List;
 @Setter
 @Builder
 public class PostResponseDTO {
-    private UserDTO user;
-    private String text;
+    private Long postId;
+    private String username;
+    private String postContent;
     private List<PostImageDTO> postImageDTOList;
 }

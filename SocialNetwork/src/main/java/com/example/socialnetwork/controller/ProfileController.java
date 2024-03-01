@@ -24,27 +24,27 @@ public class ProfileController {
     @Autowired
     private InfoService infoService;
 
-    @PostMapping(value = "/upload-avatar", consumes = "multipart/form-data")
+    @PostMapping(value = "/avatar", consumes = "multipart/form-data")
     public ResponseEntity<Response> uploadAvatar(@RequestPart("image") MultipartFile file) throws IOException {
         return ResponseEntity.ok(imageService.uploadAvatar(file));
     }
 
-    @PostMapping(value = "/update-info")
+    @PostMapping(value = "/info")
     public ResponseEntity<UserInfoResponseDTO> updateInfo(@Valid @RequestBody UserInfoRequestDTO requestDTO){
         return ResponseEntity.ok(infoService.updateInfo(requestDTO));
     }
 
-    @GetMapping("/my-avatar")
+    @GetMapping("/avatar")
     public ResponseEntity<?> showMyAvatar() throws IOException {
         return imageService.showMyAvatar();
     }
 
-    @GetMapping("/get-user-info/{userId}")
+    @GetMapping("/info/{userId}")
     public ResponseEntity<UserInfoResponseDTO> getUserInfo(@PathVariable("userId") Long userId){
         return ResponseEntity.ok(infoService.getUserInfo(userId));
     }
 
-    @GetMapping("/my-info")
+    @GetMapping("/info")
     public ResponseEntity<UserInfoResponseDTO> getMyInfo(){
         return ResponseEntity.ok(infoService.getMyInfo());
     }

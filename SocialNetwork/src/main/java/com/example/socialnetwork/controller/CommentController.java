@@ -11,30 +11,30 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/comment")
+@RequestMapping("/api/v1/comments")
 public class CommentController {
 
     @Autowired
     private CommentService commentService;
 
-    @PostMapping("/comment-post/{postId}")
+    @PostMapping("/{postId}")
     public ResponseEntity<Response> comment(@PathVariable ("postId") Long postId,
                                             @RequestBody CommentRequestDTO requestDTO) {
         return ResponseEntity.ok(commentService.comment(postId, requestDTO));
     }
 
-    @PutMapping("/edit-comment/{commentId}")
+    @PutMapping("/{commentId}")
     public ResponseEntity<Response> editComment(@PathVariable ("commentId") Long commentId,
                                                 @RequestBody CommentRequestDTO requestDTO) {
         return ResponseEntity.ok(commentService.editComment(commentId, requestDTO));
     }
 
-    @GetMapping("/get-comment/{postId}")
+    @GetMapping("/{postId}")
     public ResponseEntity<List<CommentResponseDTO>> getCommentPost(@PathVariable ("postId") Long postId) {
         return ResponseEntity.ok(commentService.getCommentPost(postId));
     }
 
-    @DeleteMapping("/delete-comment/{commentId}")
+    @DeleteMapping("/{commentId}")
     public ResponseEntity<Response> deleteCommentPost(@PathVariable ("commentId") Long commentId) {
         return ResponseEntity.ok(commentService.deleteComment(commentId));
     }

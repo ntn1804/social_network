@@ -6,6 +6,7 @@ import com.example.socialnetwork.dto.response.PostResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.dto.response.ShowAllPostResponseDTO;
 import com.example.socialnetwork.entity.Post;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,4 +23,6 @@ public interface PostService {
     PostResponseDTO getPostById(Long postId);
 
     Response deletePost(Long postId);
+
+    List<PostResponseDTO> findPostsWithPagination(int offset, int pageSize);
 }

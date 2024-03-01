@@ -56,7 +56,7 @@ public class ImageServiceImpl implements ImageService {
             UUID uuid = UUID.randomUUID();
             String stringUuid = uuid.toString();
 
-            String filePath = homeFolder + stringUuid;
+            String filePath = companyFolder + stringUuid;
 
             imageRepository.save(Avatar.builder()
                     .name(stringUuid)

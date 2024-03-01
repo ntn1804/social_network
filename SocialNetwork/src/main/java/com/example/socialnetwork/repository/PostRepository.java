@@ -1,6 +1,8 @@
 package com.example.socialnetwork.repository;
 
 import com.example.socialnetwork.entity.Post;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,5 +22,4 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "AND post.is_deleted = 0\n" +
             "AND post.user_id = ?1", nativeQuery = true)
     List<Post> findAllByFriendId(Long userId);
-
 }

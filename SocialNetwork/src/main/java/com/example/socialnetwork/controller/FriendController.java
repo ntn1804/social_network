@@ -17,22 +17,22 @@ public class FriendController {
     @Autowired
     private FriendService friendService;
 
-    @PostMapping("/friend-request/{friendId}")
+    @PostMapping("/request/{friendId}")
     public ResponseEntity<Response> sendFriendRequest(@PathVariable ("friendId") Long friendId){
         return ResponseEntity.ok(friendService.sendFriendRequest(friendId));
     }
 
-    @PostMapping("/confirm-request/{friendRequestId}")
+    @PostMapping("/confirm/{friendRequestId}")
     public ResponseEntity<Response> confirmFriendRequest(@PathVariable ("friendRequestId") Long friendRequestId){
         return ResponseEntity.ok(friendService.confirmFriendRequest(friendRequestId));
     }
 
-    @GetMapping("/get-request")
+    @GetMapping
     public ResponseEntity<List<FriendResponseDTO>> getFriendRequest(){
         return ResponseEntity.ok(friendService.getFriendRequest());
     }
 
-    @DeleteMapping ("/delete-request/{friendId}")
+    @DeleteMapping ("/{friendId}")
     public ResponseEntity<Response> deleteFriendRequest(@PathVariable ("friendId") Long friendId){
         return ResponseEntity.ok(friendService.deleteFriend(friendId));
     }

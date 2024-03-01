@@ -69,7 +69,7 @@ public class UserServiceImpl implements UserService {
         }
         String tokenResetPassword = generateToken(requestDTO);
         return ForgotPasswordResponseDTO.builder()
-                .urlAndTokenResetPassword("http://localhost:8080/api/v1/user/reset-password/" + tokenResetPassword)
+                .urlAndTokenResetPassword("http://localhost:8080/api/v1/user/password/" + tokenResetPassword)
                 .build();
     }
 
@@ -90,12 +90,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Response resetPassword(String tokenResetPassword, ResetPasswordDTO requestDTO) {
-        TokenResetPassword token = passwordRepository.findByTokenSeries(tokenResetPassword);
+        TokenResetPassword token = passwordRepository.findByTokenSeriesAndEmail(tokenResetPassword, requestDTO.getEmail());
         if (tokenResetPassword.isEmpty() || token == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid token");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email or token");
         }
 
-        User user = userRepository.findByEmail(token.getEmail());
+        if (token.getExpired().isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Expired token");
+        }
+
+        User user = userRepository.findByEmail(requestDTO.getEmail());
         user.setPassword(passwordEncoder.encode(requestDTO.getNewPassword()));
         userRepository.save(user);
         passwordRepository.delete(token);

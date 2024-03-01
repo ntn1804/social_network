@@ -191,11 +191,29 @@ class UserServiceImplTest {
 
     @Test
     void testResetPassword_InvalidToken() {
-        ResetPasswordDTO requestDTO = new ResetPasswordDTO("1234");
+        ResetPasswordDTO requestDTO = new ResetPasswordDTO("test@gmail.com", "1234");
 
         String tokenResetPassword = "dc51e081-8d7d-49a0-9283-e0e1d0935c71";
 
-        when(passwordRepository.findByTokenSeries(tokenResetPassword)).thenReturn(null);
+        when(passwordRepository.findByTokenSeriesAndEmail(tokenResetPassword, requestDTO.getEmail())).thenReturn(null);
+
+        assertThrows(ResponseStatusException.class, () -> {
+            userService.resetPassword(tokenResetPassword, requestDTO);
+        });
+    }
+
+    @Test
+    void testResetPassword_ExpiredToken() {
+        ResetPasswordDTO requestDTO = new ResetPasswordDTO("test@gmail.com", "1234");
+
+        String tokenResetPassword = "dc51e081-8d7d-49a0-9283-e0e1d0935c71";
+
+        TokenResetPassword token = TokenResetPassword.builder()
+                .email("test@gmail.com")
+                .expired(LocalDateTime.now().minusMinutes(5))
+                .build();
+
+        when(passwordRepository.findByTokenSeriesAndEmail(tokenResetPassword, requestDTO.getEmail())).thenReturn(token);
 
         assertThrows(ResponseStatusException.class, () -> {
             userService.resetPassword(tokenResetPassword, requestDTO);
@@ -204,7 +222,7 @@ class UserServiceImplTest {
 
     @Test
     void testResetPassword_ValidToken() {
-        ResetPasswordDTO requestDTO = new ResetPasswordDTO("1234");
+        ResetPasswordDTO requestDTO = new ResetPasswordDTO("test@gmail.com", "1234");
 
         String tokenResetPassword = "dc51e081-8d7d-49a0-9283-e0e1d0935c71";
 
@@ -217,7 +235,7 @@ class UserServiceImplTest {
                 .password(passwordEncoder.encode(requestDTO.getNewPassword()))
                 .build();
 
-        when(passwordRepository.findByTokenSeries(tokenResetPassword)).thenReturn(token);
+        when(passwordRepository.findByTokenSeriesAndEmail(tokenResetPassword, requestDTO.getEmail())).thenReturn(token);
 
         when(userRepository.findByEmail(token.getEmail())).thenReturn(user);
 

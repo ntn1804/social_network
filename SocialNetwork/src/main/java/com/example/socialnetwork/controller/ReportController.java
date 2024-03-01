@@ -15,7 +15,7 @@ public class ReportController {
     @Autowired
     private ReportService reportService;
 
-    @GetMapping("/create-report")
+    @GetMapping
     public void generateExcelReport(HttpServletResponse response) throws Exception {
         reportService.generateExcel(response);
     }

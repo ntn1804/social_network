@@ -11,6 +11,10 @@ import com.example.socialnetwork.entity.*;
 import com.example.socialnetwork.repository.*;
 import com.example.socialnetwork.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
@@ -101,13 +105,13 @@ public class PostServiceImpl implements PostService {
             String fileName = uuid.toString();
 
             try {
-                Files.copy(file.getInputStream(), Path.of(homeFolder + fileName + ".jpg"));
+                Files.copy(file.getInputStream(), Path.of(companyFolder + fileName + ".jpg"));
             } catch (IOException e) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error creating post");
             }
 
             PostImage postImage = PostImage.builder()
-                    .filePath(homeFolder + fileName)
+                    .filePath(companyFolder + fileName)
                     .fileName(fileName)
                     .isDeleted(0)
                     .post(post)
@@ -216,11 +220,9 @@ public class PostServiceImpl implements PostService {
             List<PostImage> postImageList = postImageRepository.findAllByPostId(post.getId());
             List<PostImageDTO> postImageDTOList = convertPostImageToPostImageDTO(postImageList);
             PostResponseDTO postResponseDTO = PostResponseDTO.builder()
-                    .user(UserDTO.builder()
-                            .id(post.getUser().getId())
-                            .username(post.getUser().getUsername())
-                            .build())
-                    .text(post.getText())
+                    .postId(post.getId())
+                    .username(post.getUser().getUsername())
+                    .postContent(post.getText())
                     .postImageDTOList(postImageDTOList)
                     .build();
             postResponseDTOList.add(postResponseDTO);
@@ -269,10 +271,10 @@ public class PostServiceImpl implements PostService {
             }
         }
 
-        return getPostResponseDTO(postId, post, friendId);
+        return getPostResponseDTO(postId, post);
     }
 
-    private PostResponseDTO getPostResponseDTO(Long postId, Post post, Long friendId) {
+    private PostResponseDTO getPostResponseDTO(Long postId, Post post) {
         List<PostImage> postImageList = postImageRepository.findAllByPostId(postId);
         List<PostImageDTO> postImageDTOList = new ArrayList<>();
 
@@ -283,11 +285,8 @@ public class PostServiceImpl implements PostService {
         }
 
         return PostResponseDTO.builder()
-                .user(UserDTO.builder()
-                        .id(friendId)
-                        .username(post.getUser().getUsername())
-                        .build())
-                .text(post.getText())
+                .username(post.getUser().getUsername())
+                .postContent(post.getText())
                 .postImageDTOList(postImageDTOList)
                 .build();
     }
@@ -340,5 +339,47 @@ public class PostServiceImpl implements PostService {
         return Response.builder()
                 .responseMessage("Post deleted successfully")
                 .build();
+    }
+
+    @Override
+    public List<PostResponseDTO> findPostsWithPagination(int offset, int pageSize) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+
+        User user = optionalUser.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        List<Long> friendIds = friendRepository.findFriendIdsByUserId(user.getId());
+        friendIds.remove(user.getId());
+
+        List<Post> allFriendPostList = new ArrayList<>();
+        for (Long id : friendIds) {
+            List<Post> friendPostList = postRepository.findAllByFriendId(id);
+            allFriendPostList.addAll(friendPostList);
+        }
+        List<Post> userPostList = postRepository.findAllByUserId(user.getId());
+        allFriendPostList.addAll(userPostList);
+
+        // sort post by LocalTimeDate
+        allFriendPostList.sort(Post::compareTo);
+
+        List<PostResponseDTO> postResponseDTOList = new ArrayList<>();
+
+        for (Post post : allFriendPostList) {
+            List<PostImage> postImageList = postImageRepository.findAllByPostId(post.getId());
+            List<PostImageDTO> postImageDTOList = convertPostImageToPostImageDTO(postImageList);
+            PostResponseDTO postResponseDTO = PostResponseDTO.builder()
+                    .postId(post.getId())
+                    .username(post.getUser().getUsername())
+                    .postContent(post.getText())
+                    .postImageDTOList(postImageDTOList)
+                    .build();
+            postResponseDTOList.add(postResponseDTO);
+        }
+
+        Pageable pageRequest = PageRequest.of(offset, pageSize);
+        int start = (int) pageRequest.getOffset();
+        int end = Math.min((start + pageRequest.getPageSize()), postResponseDTOList.size());
+
+        return postResponseDTOList.subList(start, end);
     }
 }
