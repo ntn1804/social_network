@@ -18,11 +18,9 @@ public interface PostService {
 
     Response editPost(Long postId, MultipartFile[] files, PostRequestDTO requestDTO, PostPrivacyDTO privacyDTO);
 
-    List<PostResponseDTO> getAllPosts();
+    List<PostResponseDTO> getAllPosts(int offset, int pageSize);
 
     PostResponseDTO getPostById(Long postId);
 
     Response deletePost(Long postId);
-
-    List<PostResponseDTO> findPostsWithPagination(int offset, int pageSize);
 }

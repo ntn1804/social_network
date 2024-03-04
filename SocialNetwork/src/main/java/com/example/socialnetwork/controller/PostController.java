@@ -49,15 +49,8 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PostResponseDTO>> getAllPosts(){
-        return ResponseEntity.ok(postService.getAllPosts());
-    }
-
-    @GetMapping("timeline")
-    public ResponseEntity<List<PostResponseDTO>> timeline(@RequestParam(defaultValue = "0") int offset,
-                                                          @RequestParam(defaultValue = "5") int pageSize){
-        List<PostResponseDTO> postsWithPagination = postService.findPostsWithPagination(offset, pageSize);
-        return ResponseEntity.ok()
-                .body(postsWithPagination);
+    public ResponseEntity<List<PostResponseDTO>> getAllPosts(@RequestParam(defaultValue = "0") int offset,
+                                                             @RequestParam(defaultValue = "5") int pageSize){
+        return ResponseEntity.ok(postService.getAllPosts(offset, pageSize));
     }
 }

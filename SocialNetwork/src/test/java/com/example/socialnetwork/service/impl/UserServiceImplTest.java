@@ -183,7 +183,7 @@ class UserServiceImplTest {
 
             // Then
 
-            assertEquals("http://localhost:8080/api/v1/user/reset-password/" + tokenResetPassword,
+            assertEquals("http://localhost:8080/api/v1/user/password/" + tokenResetPassword,
                 result.getUrlAndTokenResetPassword());
         }
         verify(passwordRepository,times(0)).delete(any());
@@ -228,6 +228,7 @@ class UserServiceImplTest {
 
         TokenResetPassword token = TokenResetPassword.builder()
                 .email("test@gmail.com")
+                .expired(LocalDateTime.now().plusMinutes(5))
                 .build();
 
         User user = User.builder()

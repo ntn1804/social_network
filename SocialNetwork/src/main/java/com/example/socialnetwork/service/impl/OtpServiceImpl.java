@@ -6,6 +6,7 @@ import com.example.socialnetwork.dto.response.OtpResponseDTO;
 import com.example.socialnetwork.dto.response.TokenResponseDTO;
 import com.example.socialnetwork.entity.Otp;
 import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.OtpRepository;
 import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.util.JwtService;
@@ -41,14 +42,14 @@ public class OtpServiceImpl implements OtpService {
 
         Optional<User> optionalUser = userRepository.findByUsername(requestDTO.getUsername());
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
 
         if(passwordEncoder.matches(requestDTO.getPassword(), user.getPassword())) {
             return OtpResponseDTO.builder()
                     .otpCode(generateOtp(requestDTO))
                     .build();
             } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username or password");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "Invalid username or password");
             }
     }
 
@@ -69,10 +70,10 @@ public class OtpServiceImpl implements OtpService {
     public TokenResponseDTO validateOtp(OtpValidationRequest requestDTO){
         Otp otp = otpRepository.findByUsername(requestDTO.getUsername());
         if(otp == null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid OTP");
+            throw new GeneralException(HttpStatus.NOT_FOUND, "User not found");
         }
         if (!otp.getOtpCode().equals(requestDTO.getOtpCode())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid OTP");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "Invalid OTP");
         }
         if (otp.getExpired().isBefore(LocalDateTime.now())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Expired OTP");

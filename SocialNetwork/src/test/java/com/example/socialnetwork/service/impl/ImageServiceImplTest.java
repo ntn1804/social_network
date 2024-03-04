@@ -85,7 +85,7 @@ class ImageServiceImplTest {
     void testUploadAvatar_MediaTypeNotEqualImage() {
         MultipartFile file = new MockMultipartFile(
                 "fileName",
-                (String) null,
+                null,
                 "text/plain",
                 (byte[]) null
         );
@@ -194,7 +194,7 @@ class ImageServiceImplTest {
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
 
         Avatar avatar = Avatar.builder()
-                .filePath("C:\\Users\\nguyentrungnghia\\Pictures\\Wallpaper\\42ba7e75d3fea5f706cd1a27270fc058bd18c270a1f4fdb200d4b7d1e2e49df6")
+                .filePath("C:\\Users\\MY PC\\Desktop\\Works\\MyFiles\\Sample\\dog-4988985_640")
                 .build();
 
         when(imageRepository.findByUserId(user.getId())).thenReturn(avatar);

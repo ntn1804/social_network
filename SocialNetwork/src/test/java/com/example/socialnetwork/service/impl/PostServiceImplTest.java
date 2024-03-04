@@ -423,6 +423,9 @@ class PostServiceImplTest {
 
     @Test
     void testGetAllPosts() {
+        int offset = 0;
+        int pageSize = 5;
+
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
 
@@ -480,7 +483,7 @@ class PostServiceImplTest {
 
         when(postImageRepository.findAllByPostId(any())).thenReturn(postImageList);
 
-        List<PostResponseDTO> result = postService.getAllPosts();
+        List<PostResponseDTO> result = postService.getAllPosts(offset, pageSize);
 
         assertNotNull(result);
     }

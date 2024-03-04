@@ -1,8 +1,10 @@
 package com.example.socialnetwork.advice;
 
+import com.example.socialnetwork.exception.GeneralException;
 import io.jsonwebtoken.security.SignatureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,8 +30,15 @@ public class ControllerExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ResponseStatusException.class)
-    public String handleResponseStatusException(ResponseStatusException exception) {
-        return exception.getMessage();
+    public ResponseEntity<?> handleResponseStatusException(ResponseStatusException exception) {
+        return ResponseEntity.status(exception.getStatusCode())
+                .body(exception.getMessage());
+    }
+
+    @ExceptionHandler(GeneralException.class)
+    public ResponseEntity<?> handleGeneralException(GeneralException exception) {
+        return ResponseEntity.status(exception.getStatusCode())
+                .body(exception.getResponseMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
