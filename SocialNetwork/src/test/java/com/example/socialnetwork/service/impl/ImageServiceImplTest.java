@@ -4,6 +4,7 @@ import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.Avatar;
 import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.ImageRepository;
 import com.example.socialnetwork.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -76,7 +77,7 @@ class ImageServiceImplTest {
 
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             imageService.uploadAvatar(file);
         });
     }
@@ -194,7 +195,7 @@ class ImageServiceImplTest {
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
 
         Avatar avatar = Avatar.builder()
-                .filePath("C:\\Users\\MY PC\\Desktop\\Works\\MyFiles\\Sample\\dog-4988985_640")
+                .filePath("C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\sample photo\\corgi")
                 .build();
 
         when(imageRepository.findByUserId(user.getId())).thenReturn(avatar);
@@ -233,7 +234,7 @@ class ImageServiceImplTest {
 
         when(imageRepository.findByUserId(user.getId())).thenReturn(null);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             imageService.showMyAvatar();
         });
     }

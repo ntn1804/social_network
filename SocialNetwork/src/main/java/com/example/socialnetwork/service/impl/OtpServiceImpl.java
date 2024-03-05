@@ -68,15 +68,19 @@ public class OtpServiceImpl implements OtpService {
     }
 
     public TokenResponseDTO validateOtp(OtpValidationRequest requestDTO){
+        Optional<User> optionalUser = userRepository.findByUsername(requestDTO.getUsername());
+        User user = optionalUser
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
+
         Otp otp = otpRepository.findByUsername(requestDTO.getUsername());
         if(otp == null){
-            throw new GeneralException(HttpStatus.NOT_FOUND, "User not found");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "Login to get OTP");
         }
         if (!otp.getOtpCode().equals(requestDTO.getOtpCode())){
             throw new GeneralException(HttpStatus.BAD_REQUEST, "Invalid OTP");
         }
         if (otp.getExpired().isBefore(LocalDateTime.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Expired OTP");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "Expired OTP");
         }
         otpRepository.delete(otp);
         return TokenResponseDTO.builder()

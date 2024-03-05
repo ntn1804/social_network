@@ -5,6 +5,7 @@ import com.example.socialnetwork.dto.response.FriendResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.Friend;
 import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.FriendRepository;
 import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.FriendService;
@@ -36,15 +37,15 @@ public class FriendServiceImpl implements FriendService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
 
         Optional<User> optionalFriend = userRepository.findById(friendId);
         User friend = optionalFriend
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Friend not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "Friend not found"));
 
         // send friend request to yourself
         if (user.getId().equals(friendId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can not send friend request to yourself");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "Can not send friend request to yourself");
         }
 
         Friend friendRequest = friendRepository.findByUserIdAndFriendId(user.getId(), friend.getId());
@@ -52,13 +53,13 @@ public class FriendServiceImpl implements FriendService {
 
             // friends already
             if (friendRequest.getRequestStatus().equals("Accepted")) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are friends already");
+                throw new GeneralException(HttpStatus.BAD_REQUEST, "You are friends already");
             }
 
             // request status = pending
             if (friendRequest.getRequestStatus().equals("Pending")
                     && user.getId().equals(friendRequest.getUser().getId())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You already sent friend request");
+                throw new GeneralException(HttpStatus.BAD_REQUEST, "You already sent friend request");
             }
 
             // user send friend request && friend send friend request back.
@@ -78,6 +79,7 @@ public class FriendServiceImpl implements FriendService {
                     .requestStatus("Pending")
                     .build();
             friendRepository.save(newFriendRequest);
+            response.setFriendRequestId(newFriendRequest.getId());
             response.setResponseMessage("Sent friend request successfully");
         }
         return response;
@@ -89,18 +91,18 @@ public class FriendServiceImpl implements FriendService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
 
         Optional<Friend> optionalFriendRequest = friendRepository.findById(friendRequestId);
         Friend friendRequest = optionalFriendRequest
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Friend request not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "Friend request not found"));
 
         if (friendRequest.getRequestStatus().equals("Accepted")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are friends already");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "You are friends already");
         }
 
         if (user.getId().equals(friendRequest.getUser().getId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can not accept friend request by yourself");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "Can not accept friend request by yourself");
         }
 
         if (friendRequest.getRequestStatus().equals("Pending")) {
@@ -120,7 +122,7 @@ public class FriendServiceImpl implements FriendService {
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
 
         List<Long> friendIds = friendRepository.findFriendRequestIdsByUserId(user.getId());
         friendIds.remove(user.getId());
@@ -129,7 +131,7 @@ public class FriendServiceImpl implements FriendService {
         for (Long friendId : friendIds) {
             Optional<User> optionalFriend = userRepository.findById(friendId);
             User friend = optionalFriend
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                    .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
             FriendResponseDTO friendResponseDTO = FriendResponseDTO.builder()
                     .friendId(friendId)
                     .friendUsername(friend.getUsername())
@@ -146,15 +148,15 @@ public class FriendServiceImpl implements FriendService {
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
 
         if (user.getId().equals(friendId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You can not delete friend to yourself");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "You can not delete friend to yourself");
         }
 
         Friend friend = friendRepository.findByUserIdAndFriendId(user.getId(), friendId);
         if (friend == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "You are not friends yet");
+            throw new GeneralException(HttpStatus.NOT_FOUND, "You are not friends yet");
         }
         friendRepository.delete(friend);
 

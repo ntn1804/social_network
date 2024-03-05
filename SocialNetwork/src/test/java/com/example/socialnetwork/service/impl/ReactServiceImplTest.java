@@ -6,6 +6,7 @@ import com.example.socialnetwork.entity.Friend;
 import com.example.socialnetwork.entity.Post;
 import com.example.socialnetwork.entity.React;
 import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.FriendRepository;
 import com.example.socialnetwork.repository.PostRepository;
 import com.example.socialnetwork.repository.ReactRepository;
@@ -76,7 +77,7 @@ class ReactServiceImplTest {
         Optional<Post> optionalPost = Optional.of(post);
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             reactService.reactPost(post.getId());
         });
     }
@@ -202,7 +203,7 @@ class ReactServiceImplTest {
         Optional<Post> optionalPost = Optional.of(post);
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             reactService.reactPost(post.getId());
         });
     }
@@ -257,7 +258,7 @@ class ReactServiceImplTest {
         when(friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), post.getUser().getId()))
                 .thenReturn(null);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             reactService.reactPost(post.getId());
         });
     }

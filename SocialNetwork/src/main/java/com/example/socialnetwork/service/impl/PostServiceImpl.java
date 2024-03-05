@@ -6,13 +6,12 @@ import com.example.socialnetwork.dto.request.PostRequestDTO;
 import com.example.socialnetwork.dto.response.PostImageDTO;
 import com.example.socialnetwork.dto.response.PostResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
-import com.example.socialnetwork.dto.response.UserDTO;
 import com.example.socialnetwork.entity.*;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.*;
 import com.example.socialnetwork.service.PostService;
+import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -22,8 +21,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,15 +49,14 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Response createPost(MultipartFile[] files, PostRequestDTO requestDTO) {
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
 
         if (files == null && requestDTO == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Post is empty");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "Post is empty");
         }
 
         if (files != null) {
@@ -85,6 +83,9 @@ public class PostServiceImpl implements PostService {
         }
 
         if (files == null) {
+            if (requestDTO.getText().isEmpty()) {
+                throw new GeneralException(HttpStatus.BAD_REQUEST, "Post is empty");
+            }
             Post post = Post.builder()
                     .user(user)
                     .text(requestDTO.getText())
@@ -105,13 +106,13 @@ public class PostServiceImpl implements PostService {
             String fileName = uuid.toString();
 
             try {
-                Files.copy(file.getInputStream(), Path.of(homeFolder + fileName + ".jpg"));
+                Files.copy(file.getInputStream(), Path.of(companyFolder + fileName + ".jpg"));
             } catch (IOException e) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error creating post");
+                throw new GeneralException(HttpStatus.BAD_REQUEST, "Error creating post");
             }
 
             PostImage postImage = PostImage.builder()
-                    .filePath(homeFolder + fileName)
+                    .filePath(companyFolder + fileName)
                     .fileName(fileName)
                     .isDeleted(0)
                     .post(post)
@@ -127,26 +128,26 @@ public class PostServiceImpl implements PostService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
-        User user = optionalUser.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        User user = optionalUser.orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
 
         // get old post.
         Optional<Post> optionalExistingPost = postRepository.findById(postId);
         Post post = optionalExistingPost
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "Post not found"));
 
         // not your post.
         if (!user.getId().equals(post.getUser().getId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can not edit other post");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "Can not edit other posts");
         }
 
         // deleted post.
         if (post.getIsDeleted() == 1) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post is deleted");
+            throw new GeneralException(HttpStatus.NOT_FOUND, "Post is deleted");
         }
 
         // check files = null & content = null.
         if (files == null && requestDTO == null && privacyDTO == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Post is empty");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "Post is empty");
         }
 
         // get old post image list -> if exists then soft delete.
@@ -184,7 +185,7 @@ public class PostServiceImpl implements PostService {
     private void checkFileType(MultipartFile[] files) {
         Arrays.stream(files).forEach(file -> {
             if (file.getContentType() == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose file(s)");
+                throw new GeneralException(HttpStatus.BAD_REQUEST, "please choose file(s)");
             }
             MediaType mediaType = MediaType.parseMediaType(file.getContentType());
             if (!mediaType.getType().equals("image")) {
@@ -199,7 +200,7 @@ public class PostServiceImpl implements PostService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
-        User user = optionalUser.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        User user = optionalUser.orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
         List<Long> friendIds = friendRepository.findFriendIdsByUserId(user.getId());
         friendIds.remove(user.getId());
 
@@ -254,25 +255,25 @@ public class PostServiceImpl implements PostService {
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
 
         // base on postId -> get friendId
         Optional<Post> optionalPost = postRepository.findById(postId);
         Post post = optionalPost
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "Post not found"));
         Long friendId = post.getUser().getId();
 
         if (post.getIsDeleted() == 1) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post is deleted");
+            throw new GeneralException(HttpStatus.NOT_FOUND, "Post is deleted");
         }
 
         if (!user.getId().equals(friendId)) {
             Friend friend = friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), friendId);
             if (friend == null && !post.getPrivacy().equals("public")) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are not friends");
+                throw new GeneralException(HttpStatus.BAD_REQUEST, "You are not friends");
             }
             if (post.getPrivacy().equals("only me")) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+                throw new GeneralException(HttpStatus.NOT_FOUND, "Post not found");
             }
         }
 
@@ -290,6 +291,7 @@ public class PostServiceImpl implements PostService {
         }
 
         return PostResponseDTO.builder()
+                .postId(postId)
                 .username(post.getUser().getUsername())
                 .postContent(post.getText())
                 .postImageDTOList(postImageDTOList)
@@ -302,13 +304,17 @@ public class PostServiceImpl implements PostService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
 
         Optional<Post> optionalPost = postRepository.findById(postId);
-        Post post = optionalPost.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+        Post post = optionalPost.orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "Post not found"));
+
+        if (post.getIsDeleted() == 1) {
+            throw new GeneralException(HttpStatus.NOT_FOUND, "Post not found");
+        }
 
         if (!post.getUser().getId().equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not your post");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "Not your post");
         }
 
         // get comment -> delete if exists
@@ -344,5 +350,36 @@ public class PostServiceImpl implements PostService {
         return Response.builder()
                 .responseMessage("Post deleted successfully")
                 .build();
+    }
+
+    @Override
+    public List<PostResponseDTO> getMyPosts(int offset, int pageSize) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+        User user = optionalUser
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
+
+        List<Post> postList = postRepository.findAllByUserId(user.getId());
+        postList.sort(Post::compareTo);
+
+        List<PostResponseDTO> postResponseDTOList = new ArrayList<>();
+        for (Post post : postList) {
+            List<PostImage> postImageList = postImageRepository.findAllByPostId(post.getId());
+            List<PostImageDTO> postImageDTO = convertPostImageToPostImageDTO(postImageList);
+            PostResponseDTO postResponseDTO = PostResponseDTO.builder()
+                    .postId(post.getId())
+                    .username(user.getUsername())
+                    .postContent(post.getText())
+                    .postImageDTOList(postImageDTO)
+                    .build();
+            postResponseDTOList.add(postResponseDTO);
+        }
+
+        Pageable pageRequest = PageRequest.of(offset, pageSize);
+        int start = (int) pageRequest.getOffset();
+        int end = Math.min((start + pageRequest.getPageSize()), postResponseDTOList.size());
+
+        return postResponseDTOList.subList(start, end);
     }
 }

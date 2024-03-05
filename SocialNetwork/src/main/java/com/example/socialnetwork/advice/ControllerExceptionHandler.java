@@ -28,12 +28,11 @@ public class ControllerExceptionHandler {
         return errorMap;
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<?> handleResponseStatusException(ResponseStatusException exception) {
-        return ResponseEntity.status(exception.getStatusCode())
-                .body(exception.getMessage());
-    }
+//    @ExceptionHandler(ResponseStatusException.class)
+//    public ResponseEntity<?> handleResponseStatusException(ResponseStatusException exception) {
+//        return ResponseEntity.status(exception.getStatusCode())
+//                .body(exception.getMessage());
+//    }
 
     @ExceptionHandler(GeneralException.class)
     public ResponseEntity<?> handleGeneralException(GeneralException exception) {

@@ -6,6 +6,7 @@ import com.example.socialnetwork.dto.request.PostRequestDTO;
 import com.example.socialnetwork.dto.response.PostResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.*;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,7 +71,7 @@ class PostServiceImplTest {
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
         when(authentication.getPrincipal()).thenReturn(userDetails);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             postService.createPost(files, requestDTO);
         });
     }
@@ -105,7 +106,7 @@ class PostServiceImplTest {
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
         when(authentication.getPrincipal()).thenReturn(userDetails);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             postService.createPost(files, requestDTO);
         });
     }
@@ -141,6 +142,35 @@ class PostServiceImplTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
 
         assertThrows(InvalidMediaTypeException.class, () -> {
+            postService.createPost(files, requestDTO);
+        });
+    }
+
+    @Test
+    void testCreatePost_FilesNull_RequestDTOEmpty() {
+        MultipartFile[] files = null;
+        PostRequestDTO requestDTO = new PostRequestDTO("");
+
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+
+        User user = User.builder()
+                .id(1L)
+                .username("test username")
+                .role("USER")
+                .build();
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Optional<User> optionalUser = Optional.of(user);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+
+        assertThrows(GeneralException.class, () -> {
             postService.createPost(files, requestDTO);
         });
     }
@@ -303,7 +333,7 @@ class PostServiceImplTest {
 
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             postService.editPost(post.getId(), null, null, null);
         });
     }
@@ -338,7 +368,7 @@ class PostServiceImplTest {
 
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             postService.editPost(post.getId(), null, null, null);
         });
     }
@@ -373,7 +403,7 @@ class PostServiceImplTest {
 
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             postService.editPost(post.getId(), null, null, null);
         });
     }
@@ -536,7 +566,7 @@ class PostServiceImplTest {
 
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             postService.getPostById(post.getId());
         });
     }
@@ -593,7 +623,7 @@ class PostServiceImplTest {
         when(friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), friend.getId()))
                 .thenReturn(null);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             postService.getPostById(post.getId());
         });
 
@@ -651,7 +681,7 @@ class PostServiceImplTest {
         when(friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), friend.getId()))
                 .thenReturn(Friend.builder().build());
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             postService.getPostById(post.getId());
         });
     }
@@ -774,7 +804,7 @@ class PostServiceImplTest {
 
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             postService.deletePost(post.getId());
         });
     }
@@ -833,6 +863,59 @@ class PostServiceImplTest {
         when(postImageRepository.findAllByPostId(post.getId())).thenReturn(existPostImage);
 
         Response result = postService.deletePost(post.getId());
+        assertNotNull(result);
+    }
+
+    @Test
+    void testGetMyPosts() {
+        int offset = 0;
+        int pageSize = 5;
+
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+
+        User user = User.builder()
+                .id(1L)
+                .username("test username")
+                .role("USER")
+                .build();
+
+        UserInfoUserDetails userDetails = new UserInfoUserDetails(user);
+
+        Optional<User> optionalUser = Optional.of(user);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+
+        Post post = Post.builder()
+                .id(1L)
+                .user(user)
+                .createdDate(LocalDateTime.now())
+                .build();
+
+        Post post2 = Post.builder()
+                .id(2L)
+                .user(user)
+                .createdDate(LocalDateTime.now().minusMinutes(30))
+                .build();
+
+        List<Post> postList = new ArrayList<>(Arrays.asList(post, post2));
+        when(postRepository.findAllByUserId(user.getId())).thenReturn(postList);
+
+        PostImage postImage = PostImage.builder()
+                .build();
+
+        PostImage postImage2 = PostImage.builder()
+                .build();
+
+        List<PostImage> postImageList = new ArrayList<>(Arrays.asList(postImage, postImage2));
+        when(postImageRepository.findAllByPostId(any())).thenReturn(postImageList);
+
+        List<PostResponseDTO> result = postService.getMyPosts(offset, pageSize);
+
         assertNotNull(result);
     }
 }

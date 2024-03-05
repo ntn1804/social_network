@@ -8,6 +8,7 @@ import com.example.socialnetwork.entity.Comment;
 import com.example.socialnetwork.entity.Friend;
 import com.example.socialnetwork.entity.Post;
 import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.CommentRepository;
 import com.example.socialnetwork.repository.FriendRepository;
 import com.example.socialnetwork.repository.PostRepository;
@@ -20,7 +21,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.*;
@@ -92,7 +92,7 @@ class CommentServiceImplTest {
 
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             commentService.comment(post.getId(), null);
         });
     }
@@ -146,7 +146,7 @@ class CommentServiceImplTest {
 
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             commentService.comment(post.getId(), null);
         });
     }
@@ -201,7 +201,7 @@ class CommentServiceImplTest {
         when(friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), post.getUser().getId()))
                 .thenReturn(null);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             commentService.comment(post.getId(), null);
         });
     }
@@ -314,7 +314,7 @@ class CommentServiceImplTest {
         Optional<Comment> optionalComment = Optional.of(comment);
         when(commentRepository.findById(comment.getId())).thenReturn(optionalComment);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             commentService.editComment(comment.getId(), null);
         });
     }
@@ -370,7 +370,7 @@ class CommentServiceImplTest {
         Optional<Comment> optionalComment = Optional.of(comment);
         when(commentRepository.findById(comment.getId())).thenReturn(optionalComment);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             commentService.editComment(comment.getId(), null);
         });
     }
@@ -415,7 +415,7 @@ class CommentServiceImplTest {
         Optional<Comment> optionalComment = Optional.of(comment);
         when(commentRepository.findById(comment.getId())).thenReturn(optionalComment);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             commentService.editComment(comment.getId(), new CommentRequestDTO(""));
         });
     }
@@ -466,6 +466,8 @@ class CommentServiceImplTest {
 
     @Test
     void testGetCommentPost_DeletedPost() {
+        int offset = 0;
+        int pageSize = 5;
         User user = User.builder()
                 .id(1L)
                 .username("testUsername")
@@ -498,13 +500,15 @@ class CommentServiceImplTest {
         Optional<Post> optionalPost = Optional.of(post);
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
 
-        assertThrows(ResponseStatusException.class, () -> {
-            commentService.getCommentPost(post.getId());
+        assertThrows(GeneralException.class, () -> {
+            commentService.getCommentPost(post.getId(), offset, pageSize);
         });
     }
 
     @Test
     void testGetCommentPost_NotFriends() {
+        int offset = 0;
+        int pageSize = 5;
         User user = User.builder()
                 .id(1L)
                 .username("testUsername")
@@ -552,13 +556,15 @@ class CommentServiceImplTest {
         when(friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), post.getUser().getId()))
                 .thenReturn(null);
 
-        assertThrows(ResponseStatusException.class, () -> {
-            commentService.getCommentPost(post.getId());
+        assertThrows(GeneralException.class, () -> {
+            commentService.getCommentPost(post.getId(), offset, pageSize);
         });
     }
 
     @Test
     void testGetCommentPost_SuccessCase() {
+        int offset = 0;
+        int pageSize = 5;
         User user = User.builder()
                 .id(1L)
                 .username("testUsername")
@@ -604,7 +610,7 @@ class CommentServiceImplTest {
         List<Comment> commentList = new ArrayList<>(Arrays.asList(comment, comment2));
         when(commentRepository.findAllByPostId(post.getId())).thenReturn(commentList);
 
-        List<CommentResponseDTO> result = commentService.getCommentPost(post.getId());
+        List<CommentResponseDTO> result = commentService.getCommentPost(post.getId(), offset, pageSize);
         assertNotNull(result);
     }
 
@@ -643,7 +649,7 @@ class CommentServiceImplTest {
         Optional<Comment> optionalComment = Optional.of(comment);
         when(commentRepository.findById(comment.getId())).thenReturn(optionalComment);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             commentService.deleteComment(comment.getId());
         });
     }
@@ -701,7 +707,7 @@ class CommentServiceImplTest {
         Optional<Comment> optionalComment = Optional.of(comment);
         when(commentRepository.findById(comment.getId())).thenReturn(optionalComment);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             commentService.deleteComment(comment.getId());
         });
     }
@@ -759,7 +765,7 @@ class CommentServiceImplTest {
         Optional<Comment> optionalComment = Optional.of(comment);
         when(commentRepository.findById(comment.getId())).thenReturn(optionalComment);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             commentService.deleteComment(comment.getId());
         });
     }

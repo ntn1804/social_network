@@ -37,9 +37,9 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/user", "/error/**",
+                        .requestMatchers("/api/v1/user/register", "/error/**",
                                 "/api/v1/user/login",
-                                "/api/v1/user/validation",
+                                "/api/v1/user/verify-otp",
                                 "/api/v1/user/password",
                                 "/api/v1/user/password/{token}",
                                 "/swagger-ui/**",

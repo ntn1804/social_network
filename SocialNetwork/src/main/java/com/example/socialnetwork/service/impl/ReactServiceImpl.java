@@ -6,6 +6,7 @@ import com.example.socialnetwork.entity.Friend;
 import com.example.socialnetwork.entity.Post;
 import com.example.socialnetwork.entity.React;
 import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.FriendRepository;
 import com.example.socialnetwork.repository.PostRepository;
 import com.example.socialnetwork.repository.ReactRepository;
@@ -41,14 +42,14 @@ public class ReactServiceImpl implements ReactService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
         User user = optionalUser
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(()-> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
 
         Optional<Post> optionalPost = postRepository.findById(postId);
         Post post = optionalPost
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+                .orElseThrow(()-> new GeneralException(HttpStatus.NOT_FOUND, "Post not found"));
 
         if (post.getIsDeleted() == 1) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post is deleted");
+            throw new GeneralException(HttpStatus.NOT_FOUND, "Post is deleted");
         }
 
         // post cua minh
@@ -59,7 +60,7 @@ public class ReactServiceImpl implements ReactService {
         // post khong phai cua minh
         if (!post.getUser().getId().equals(user.getId())) {
             if (post.getPrivacy().equals("only me")) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+                throw new GeneralException(HttpStatus.NOT_FOUND, "Post not found");
             }
 
             // co phai ban k
@@ -67,7 +68,7 @@ public class ReactServiceImpl implements ReactService {
             if (friend == null) {
                 // post privacy
                 if (!post.getPrivacy().equals("public")) {
-                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+                    throw new GeneralException(HttpStatus.NOT_FOUND, "Post not found");
                 }
                 createReactPost(postId, response, user, post);
             }

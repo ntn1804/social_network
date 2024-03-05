@@ -4,6 +4,7 @@ import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.dto.request.UserInfoRequestDTO;
 import com.example.socialnetwork.dto.response.UserInfoResponseDTO;
 import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.InfoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ public class InfoServiceImpl implements InfoService {
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.BAD_REQUEST, "User not found"));
 
             user.setFullName(requestDTO.getFullName());
             user.setDateOfBirth(requestDTO.getDateOfBirth());
@@ -49,7 +50,7 @@ public class InfoServiceImpl implements InfoService {
     public UserInfoResponseDTO getUserInfo(Long userId) {
         Optional<User> optionalUser = userRepository.findById(userId);
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.BAD_REQUEST, "User not found"));
 
             return UserInfoResponseDTO.builder()
                     .email(user.getEmail())
@@ -68,7 +69,7 @@ public class InfoServiceImpl implements InfoService {
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.BAD_REQUEST, "User not found"));
 
         return UserInfoResponseDTO.builder()
                 .email(user.getEmail())

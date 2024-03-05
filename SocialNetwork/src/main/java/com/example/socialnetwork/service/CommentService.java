@@ -13,7 +13,7 @@ public interface CommentService {
 
     Response editComment(Long commentId, CommentRequestDTO requestDTO);
 
-    List<CommentResponseDTO> getCommentPost(Long postId);
+    List<CommentResponseDTO> getCommentPost(Long postId, int offset, int pageSize);
 
     Response deleteComment(Long commentId);
 }

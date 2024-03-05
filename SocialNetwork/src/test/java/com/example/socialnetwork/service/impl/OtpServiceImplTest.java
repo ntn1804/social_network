@@ -6,6 +6,7 @@ import com.example.socialnetwork.dto.response.OtpResponseDTO;
 import com.example.socialnetwork.dto.response.TokenResponseDTO;
 import com.example.socialnetwork.entity.Otp;
 import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.OtpRepository;
 import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.util.JwtService;
@@ -56,7 +57,7 @@ class OtpServiceImplTest {
         when(passwordEncoder.matches(requestDTO.getPassword(), user.getPassword()))
                 .thenReturn(false);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             otpService.sendOtp(requestDTO);
         });
     }
@@ -95,12 +96,17 @@ class OtpServiceImplTest {
 
     @Test
     void testValidateOtp_NotLoginException() {
-        OtpValidationRequest requestDTO = new OtpValidationRequest(
-                "test", "123456");
+        OtpValidationRequest requestDTO = new OtpValidationRequest("test", "123456");
+        User user = User.builder()
+                .username("test")
+                .build();
+
+        Optional<User> optionalUser = Optional.of(user);
+        when(userRepository.findByUsername(requestDTO.getUsername())).thenReturn(optionalUser);
 
         when(otpRepository.findByUsername(requestDTO.getUsername())).thenReturn(null);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             otpService.validateOtp(requestDTO);
         });
     }
@@ -114,9 +120,16 @@ class OtpServiceImplTest {
                 .otpCode("123457")
                 .build();
 
+        User user = User.builder()
+                .username("test")
+                .build();
+
+        Optional<User> optionalUser = Optional.of(user);
+        when(userRepository.findByUsername(requestDTO.getUsername())).thenReturn(optionalUser);
+
         when(otpRepository.findByUsername(requestDTO.getUsername())).thenReturn(otp);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             otpService.validateOtp(requestDTO);
         });
     }
@@ -131,9 +144,16 @@ class OtpServiceImplTest {
                 .expired(LocalDateTime.now())
                 .build();
 
+        User user = User.builder()
+                .username("test")
+                .build();
+
+        Optional<User> optionalUser = Optional.of(user);
+        when(userRepository.findByUsername(requestDTO.getUsername())).thenReturn(optionalUser);
+
         when(otpRepository.findByUsername(requestDTO.getUsername())).thenReturn(otp);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             otpService.validateOtp(requestDTO);
         });
     }
@@ -147,6 +167,13 @@ class OtpServiceImplTest {
                 .otpCode("123456")
                 .expired(LocalDateTime.now().plusMinutes(5))
                 .build();
+
+        User user = User.builder()
+                .username("test")
+                .build();
+
+        Optional<User> optionalUser = Optional.of(user);
+        when(userRepository.findByUsername(requestDTO.getUsername())).thenReturn(optionalUser);
 
         TokenResponseDTO tokenResponseDTO = new TokenResponseDTO("token123");
 

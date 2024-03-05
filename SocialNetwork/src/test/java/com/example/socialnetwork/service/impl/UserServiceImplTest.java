@@ -8,6 +8,7 @@ import com.example.socialnetwork.dto.response.RegistrationResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.TokenResetPassword;
 import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.PasswordRepository;
 import com.example.socialnetwork.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,7 +60,7 @@ class UserServiceImplTest {
                 .thenReturn(existingUser);
 
         // Act and Assert
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             userService.registerUser(requestDTO);
         });
 
@@ -145,7 +146,7 @@ class UserServiceImplTest {
                 .thenReturn(null);
 
         // When
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             userService.forgotPassword(requestDTO);
         });
     }
@@ -197,7 +198,7 @@ class UserServiceImplTest {
 
         when(passwordRepository.findByTokenSeriesAndEmail(tokenResetPassword, requestDTO.getEmail())).thenReturn(null);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             userService.resetPassword(tokenResetPassword, requestDTO);
         });
     }
@@ -215,7 +216,7 @@ class UserServiceImplTest {
 
         when(passwordRepository.findByTokenSeriesAndEmail(tokenResetPassword, requestDTO.getEmail())).thenReturn(token);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             userService.resetPassword(tokenResetPassword, requestDTO);
         });
     }

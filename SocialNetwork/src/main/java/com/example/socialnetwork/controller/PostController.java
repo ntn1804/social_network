@@ -6,6 +6,7 @@ import com.example.socialnetwork.dto.response.PostResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.Post;
 import com.example.socialnetwork.service.PostService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
@@ -25,12 +26,14 @@ public class PostController {
     private PostService postService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Create a post.")
     public ResponseEntity<Response> createPost(@RequestPart(value = "image", required = false) MultipartFile[] files,
                                                @RequestParam(value = "text", required = false) PostRequestDTO requestDTO ) throws IOException {
         return ResponseEntity.ok(postService.createPost(files, requestDTO));
     }
 
     @PutMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Edit a post.")
     public ResponseEntity<Response> editPost(@PathVariable("postId") Long postId,
                                              @RequestPart(value = "image", required = false) MultipartFile[] files,
                                              @RequestParam(value = "text", required = false) PostRequestDTO requestDTO,
@@ -39,18 +42,28 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
+    @Operation(summary = "Get a post by Id.")
     public ResponseEntity<PostResponseDTO> getPost(@PathVariable("postId") Long postId) {
         return ResponseEntity.ok(postService.getPostById(postId));
     }
 
     @DeleteMapping("/{postId}")
+    @Operation(summary = "Delete a post.")
     public ResponseEntity<Response> deletePost(@PathVariable("postId") Long postId) {
         return ResponseEntity.ok(postService.deletePost(postId));
     }
 
-    @GetMapping
+    @GetMapping("/timeline")
+    @Operation(summary = "Get all posts.")
     public ResponseEntity<List<PostResponseDTO>> getAllPosts(@RequestParam(defaultValue = "0") int offset,
                                                              @RequestParam(defaultValue = "5") int pageSize){
         return ResponseEntity.ok(postService.getAllPosts(offset, pageSize));
+    }
+
+    @GetMapping("/my-posts")
+    @Operation(summary = "Get my posts.")
+    public ResponseEntity<List<PostResponseDTO>> getMyPosts(@RequestParam(defaultValue = "0") int offset,
+                                                             @RequestParam(defaultValue = "5") int pageSize){
+        return ResponseEntity.ok(postService.getMyPosts(offset, pageSize));
     }
 }

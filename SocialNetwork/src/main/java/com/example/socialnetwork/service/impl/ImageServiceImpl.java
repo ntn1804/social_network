@@ -4,6 +4,7 @@ import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.Avatar;
 import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.ImageRepository;
 import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.ImageService;
@@ -42,10 +43,10 @@ public class ImageServiceImpl implements ImageService {
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.BAD_REQUEST, "User not found"));
 
         if (file.getContentType() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "please choose a file");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "please choose a file");
         }
 
         MediaType mediaType = MediaType.parseMediaType(file.getContentType());
@@ -56,7 +57,7 @@ public class ImageServiceImpl implements ImageService {
             UUID uuid = UUID.randomUUID();
             String stringUuid = uuid.toString();
 
-            String filePath = homeFolder + stringUuid;
+            String filePath = companyFolder + stringUuid;
 
             imageRepository.save(Avatar.builder()
                     .name(stringUuid)
@@ -69,7 +70,7 @@ public class ImageServiceImpl implements ImageService {
             file.transferTo(new File(filePath + ".jpg"));
 
             return Response.builder()
-                    .responseMessage("file uploaded successfully")
+                    .responseMessage("Avatar uploaded successfully")
                     .build();
     }
 
@@ -79,12 +80,12 @@ public class ImageServiceImpl implements ImageService {
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.BAD_REQUEST, "User not found"));
 
         Avatar avatar = imageRepository.findByUserId(user.getId());
 
         if (avatar == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Avatar not found");
+            throw new GeneralException(HttpStatus.NOT_FOUND, "Avatar not found");
         }
 
         String filePath = avatar.getFilePath() + ".jpg";

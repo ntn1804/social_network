@@ -9,6 +9,7 @@ import com.example.socialnetwork.dto.response.RegistrationResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.TokenResetPassword;
 import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.PasswordRepository;
 import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.UserService;
@@ -40,7 +41,7 @@ public class UserServiceImpl implements UserService {
         User existingUser = userRepository.findByEmailOrUsername(requestDTO.getEmail(), requestDTO.getUsername());
 
         if (existingUser != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email or Username has been registered");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "Email or Username has been registered");
         }
 
         var result = saveUser(requestDTO);
@@ -65,7 +66,7 @@ public class UserServiceImpl implements UserService {
     public ForgotPasswordResponseDTO forgotPassword(ForgotPasswordRequestDTO requestDTO) {
         User existingUser = userRepository.findByEmail(requestDTO.getEmail());
         if (existingUser == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid email");
+            throw new GeneralException(HttpStatus.NOT_FOUND, "Invalid email");
         }
         String tokenResetPassword = generateToken(requestDTO);
         return ForgotPasswordResponseDTO.builder()
@@ -92,11 +93,11 @@ public class UserServiceImpl implements UserService {
     public Response resetPassword(String tokenResetPassword, ResetPasswordDTO requestDTO) {
         TokenResetPassword token = passwordRepository.findByTokenSeriesAndEmail(tokenResetPassword, requestDTO.getEmail());
         if (tokenResetPassword.isEmpty() || token == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid email or token");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "Invalid email or token");
         }
 
         if (token.getExpired().isBefore(LocalDateTime.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Expired token");
+            throw new GeneralException(HttpStatus.BAD_REQUEST, "Expired token");
         }
 
         User user = userRepository.findByEmail(requestDTO.getEmail());

@@ -21,7 +21,7 @@ class ResponseTest {
                 .email("test")
                 .build());
         response.setCommentResponse(CommentResponseDTO.builder()
-                .content("test")
+                .comment("test")
                 .build());
         response.setReactResponse(new ReactResponseDTO("test"));
 

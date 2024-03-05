@@ -2,6 +2,7 @@ package com.example.socialnetwork.service.impl;
 
 import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.entity.*;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.*;
 import com.example.socialnetwork.service.ReportService;
 import jakarta.servlet.ServletOutputStream;
@@ -41,7 +42,7 @@ public class ReportServiceImpl implements ReportService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
 
         List<Post> recentPosts = new ArrayList<>();
         List<Post> postList = postRepository.findAllByUserId(user.getId());
@@ -59,7 +60,7 @@ public class ReportServiceImpl implements ReportService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
 
         List<Friend> recentFriends = new ArrayList<>();
         List<Friend> friendList = friendRepository.friendList(user.getId());
@@ -77,7 +78,7 @@ public class ReportServiceImpl implements ReportService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
 
         List<React> recentReacts = new ArrayList<>();
         List<React> reactList = reactRepository.findAllByUserId(user.getId());
@@ -95,7 +96,7 @@ public class ReportServiceImpl implements ReportService {
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
         User user = optionalUser
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new GeneralException(HttpStatus.NOT_FOUND, "User not found"));
 
         List<Comment> recentComments = new ArrayList<>();
         List<Comment> commentList = commentRepository.findAllByUserId(user.getId());

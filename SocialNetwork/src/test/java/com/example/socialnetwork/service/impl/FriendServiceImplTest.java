@@ -5,6 +5,7 @@ import com.example.socialnetwork.dto.response.FriendResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.Friend;
 import com.example.socialnetwork.entity.User;
+import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.FriendRepository;
 import com.example.socialnetwork.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -73,7 +74,7 @@ class FriendServiceImplTest {
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
         when(userRepository.findById(friend.getId())).thenReturn(optionalFriend);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             friendService.sendFriendRequest(friend.getId());
         });
     }
@@ -123,7 +124,7 @@ class FriendServiceImplTest {
                 .build();
         when(friendRepository.findByUserIdAndFriendId(user.getId(), user2.getId())).thenReturn(friend);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             friendService.sendFriendRequest(user2.getId());
         });
     }
@@ -174,7 +175,7 @@ class FriendServiceImplTest {
                 .build();
         when(friendRepository.findByUserIdAndFriendId(user.getId(), user2.getId())).thenReturn(friend);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             friendService.sendFriendRequest(user2.getId());
         });
     }
@@ -310,7 +311,7 @@ class FriendServiceImplTest {
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
         when(friendRepository.findById(friend.getId())).thenReturn(optionalFriend);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             friendService.confirmFriendRequest(friend.getId());
         });
     }
@@ -349,7 +350,7 @@ class FriendServiceImplTest {
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
         when(friendRepository.findById(friend.getId())).thenReturn(optionalFriend);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             friendService.confirmFriendRequest(friend.getId());
         });
     }
@@ -500,7 +501,7 @@ class FriendServiceImplTest {
         when((authentication.getPrincipal())).thenReturn(userDetails);
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             friendService.deleteFriend(user2.getId());
         });
     }
@@ -543,7 +544,7 @@ class FriendServiceImplTest {
         when(userRepository.findByUsername(userDetails.getUsername())).thenReturn(optionalUser);
         when(friendRepository.findByUserIdAndFriendId(user.getId(), user2.getId())).thenReturn(null);
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(GeneralException.class, () -> {
             friendService.deleteFriend(user2.getId());
         });
     }

@@ -19,4 +19,7 @@ public class Response {
     private CommentResponseDTO commentResponse;
     private ReactResponseDTO reactResponse;
     private List<Post> timelinePost;
+    private Long commentId;
+    private String comment;
+    private Long friendRequestId;
 }

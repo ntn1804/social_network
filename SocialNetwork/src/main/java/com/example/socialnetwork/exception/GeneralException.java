@@ -14,7 +14,7 @@ public class GeneralException extends RuntimeException {
     private String message;
 
     public Map<String, String> getResponseMessage() {
-        var map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         map.put("message", message);
         return map;
     }
