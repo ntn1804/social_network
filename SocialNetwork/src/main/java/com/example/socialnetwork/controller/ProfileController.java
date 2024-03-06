@@ -31,16 +31,22 @@ public class ProfileController {
         return ResponseEntity.ok(imageService.uploadAvatar(file));
     }
 
-    @PostMapping(value = "/info")
+    @PatchMapping(value = "/info")
     @Operation(summary = "Update my info.")
     public ResponseEntity<UserInfoResponseDTO> updateInfo(@Valid @RequestBody UserInfoRequestDTO requestDTO){
         return ResponseEntity.ok(infoService.updateInfo(requestDTO));
     }
 
-    @GetMapping("/avatar")
+    @GetMapping("/avatar/me")
     @Operation(summary = "Get my avatar.")
     public ResponseEntity<?> showMyAvatar() throws IOException {
         return imageService.showMyAvatar();
+    }
+
+    @GetMapping("/avatar/{userId}")
+    @Operation(summary = "Get users avatar.")
+    public ResponseEntity<?> showOthersAvatar(@PathVariable("userId") Long userId) throws IOException {
+        return imageService.showOthersAvatar(userId);
     }
 
     @GetMapping("/info/{userId}")
@@ -49,7 +55,7 @@ public class ProfileController {
         return ResponseEntity.ok(infoService.getUserInfo(userId));
     }
 
-    @GetMapping("/info")
+    @GetMapping("/info/me")
     @Operation(summary = "Get my info.")
     public ResponseEntity<UserInfoResponseDTO> getMyInfo(){
         return ResponseEntity.ok(infoService.getMyInfo());

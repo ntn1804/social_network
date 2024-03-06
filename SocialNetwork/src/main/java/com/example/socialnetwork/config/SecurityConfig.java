@@ -37,11 +37,11 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/user/register", "/error/**",
-                                "/api/v1/user/login",
-                                "/api/v1/user/verify-otp",
-                                "/api/v1/user/password",
-                                "/api/v1/user/password/{token}",
+                        .requestMatchers("/api/v1/users/register", "/error/**",
+                                "/api/v1/users/login",
+                                "/api/v1/users/verify-otp",
+                                "/api/v1/users/password",
+                                "/api/v1/users/password/{token}",
                                 "/swagger-ui/**",
                                 "/api-docs/**",
                                 "/swagger-ui.html")

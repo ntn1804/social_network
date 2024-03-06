@@ -11,4 +11,6 @@ public interface ImageService {
     Response uploadAvatar(MultipartFile file) throws IOException;
 
     ResponseEntity<?> showMyAvatar() throws IOException;
+
+    ResponseEntity<?> showOthersAvatar(Long userId) throws IOException;
 }

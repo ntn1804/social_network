@@ -56,13 +56,17 @@ public class OtpServiceImpl implements OtpService {
     public String generateOtp(LoginRequestDTO requestDTO){
         Otp existingOtp = otpRepository.findByUsername(requestDTO.getUsername());
         if (existingOtp != null){
-            otpRepository.delete(existingOtp);
+            String otp= new DecimalFormat("000000").format(new Random().nextInt(999999));
+            existingOtp.setOtpCode(otp);
+            existingOtp.setExpired(LocalDateTime.now());
+            otpRepository.save(existingOtp);
+            return otp;
         }
         String otp= new DecimalFormat("000000").format(new Random().nextInt(999999));
         otpRepository.save(Otp.builder()
                         .username(requestDTO.getUsername())
                         .otpCode(otp)
-                        .expired(LocalDateTime.now().plusMinutes(5))
+                        .expired(LocalDateTime.now())
                 .build());
         return otp;
     }
@@ -79,7 +83,7 @@ public class OtpServiceImpl implements OtpService {
         if (!otp.getOtpCode().equals(requestDTO.getOtpCode())){
             throw new GeneralException(HttpStatus.BAD_REQUEST, "Invalid OTP");
         }
-        if (otp.getExpired().isBefore(LocalDateTime.now())) {
+        if (otp.getExpired().isBefore(LocalDateTime.now().minusMinutes(1))) {
             throw new GeneralException(HttpStatus.BAD_REQUEST, "Expired OTP");
         }
         otpRepository.delete(otp);

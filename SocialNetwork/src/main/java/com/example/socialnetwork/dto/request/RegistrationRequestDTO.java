@@ -1,5 +1,6 @@
 package com.example.socialnetwork.dto.request;
 
+import com.example.socialnetwork.util.ValidPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -19,6 +20,6 @@ public class RegistrationRequestDTO {
     @NotBlank(message = "Invalid username")
     private String username;
 
-    @NotBlank(message = "Invalid password")
+    @ValidPassword
     private String password;
 }

@@ -34,7 +34,7 @@ public class ImageServiceImpl implements ImageService {
     @Autowired
     private UserRepository userRepository;
 
-    private final String companyFolder = "C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\";
+    private final String companyFolder = "/static/image/";
     private final String homeFolder = "C:\\Users\\MY PC\\Desktop\\Works\\MyFiles\\";
 
     public Response uploadAvatar(MultipartFile file) throws IOException {
@@ -67,7 +67,7 @@ public class ImageServiceImpl implements ImageService {
                     .user(user)
                     .build());
 
-            file.transferTo(new File(filePath + ".jpg"));
+//            file.transferTo(new File(filePath + ".jpg"));
 
             return Response.builder()
                     .responseMessage("Avatar uploaded successfully")
@@ -84,6 +84,24 @@ public class ImageServiceImpl implements ImageService {
 
         Avatar avatar = imageRepository.findByUserId(user.getId());
 
+        if (avatar == null) {
+            throw new GeneralException(HttpStatus.NOT_FOUND, "Avatar not found");
+        }
+
+        String filePath = avatar.getFilePath() + ".jpg";
+        byte[] images = Files.readAllBytes(new File(filePath).toPath());
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("image/png"))
+                .body(images);
+    }
+
+    @Override
+    public ResponseEntity<?> showOthersAvatar(Long userId) throws IOException {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        User user = optionalUser
+                .orElseThrow(() -> new GeneralException(HttpStatus.BAD_REQUEST, "User not found"));
+
+        Avatar avatar = imageRepository.findByUserId(user.getId());
         if (avatar == null) {
             throw new GeneralException(HttpStatus.NOT_FOUND, "Avatar not found");
         }

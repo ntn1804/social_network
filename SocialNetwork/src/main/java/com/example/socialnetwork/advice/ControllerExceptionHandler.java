@@ -28,12 +28,6 @@ public class ControllerExceptionHandler {
         return errorMap;
     }
 
-//    @ExceptionHandler(ResponseStatusException.class)
-//    public ResponseEntity<?> handleResponseStatusException(ResponseStatusException exception) {
-//        return ResponseEntity.status(exception.getStatusCode())
-//                .body(exception.getMessage());
-//    }
-
     @ExceptionHandler(GeneralException.class)
     public ResponseEntity<?> handleGeneralException(GeneralException exception) {
         return ResponseEntity.status(exception.getStatusCode())

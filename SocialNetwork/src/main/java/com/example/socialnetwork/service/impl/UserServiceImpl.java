@@ -77,14 +77,18 @@ public class UserServiceImpl implements UserService {
     public String generateToken(ForgotPasswordRequestDTO requestDTO) {
         TokenResetPassword existingToken = passwordRepository.findByEmail(requestDTO.getEmail());
         if (existingToken != null) {
-            passwordRepository.delete(existingToken);
+            UUID uuid = UUID.randomUUID();
+            String tokenResetPassword = uuid.toString();
+            existingToken.setTokenSeries(tokenResetPassword);
+            passwordRepository.save(existingToken);
+            return tokenResetPassword;
         }
         UUID uuid = UUID.randomUUID();
         String tokenResetPassword = uuid.toString();
         passwordRepository.save(TokenResetPassword.builder()
                 .email(requestDTO.getEmail())
                 .tokenSeries(tokenResetPassword)
-                .expired(LocalDateTime.now().plusMinutes(5))
+                .expired(LocalDateTime.now())
                 .build());
         return tokenResetPassword;
     }
@@ -96,7 +100,7 @@ public class UserServiceImpl implements UserService {
             throw new GeneralException(HttpStatus.BAD_REQUEST, "Invalid email or token");
         }
 
-        if (token.getExpired().isBefore(LocalDateTime.now())) {
+        if (token.getExpired().isBefore(LocalDateTime.now().plusMinutes(5))) {
             throw new GeneralException(HttpStatus.BAD_REQUEST, "Expired token");
         }
 
