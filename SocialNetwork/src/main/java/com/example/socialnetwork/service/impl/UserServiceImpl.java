@@ -12,8 +12,11 @@ import com.example.socialnetwork.entity.User;
 import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.PasswordRepository;
 import com.example.socialnetwork.repository.UserRepository;
+import com.example.socialnetwork.service.ImageService;
 import com.example.socialnetwork.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,12 +33,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private PasswordRepository passwordRepository;
-
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    ResourceLoader resourceLoader;
 
     public RegistrationResponseDTO registerUser(RegistrationRequestDTO requestDTO) {
         User existingUser = userRepository.findByEmailOrUsername(requestDTO.getEmail(), requestDTO.getUsername());
@@ -46,11 +49,20 @@ public class UserServiceImpl implements UserService {
 
         var result = saveUser(requestDTO);
 
+
+
         return RegistrationResponseDTO.builder()
                 .email(result.getEmail())
                 .username(result.getUsername())
                 .build();
     }
+
+    public void saveDefaultAvatar() {
+        Resource imageResource = resourceLoader.getResource("classpath:static/images/default-avatar.jpg");
+
+    }
+
+
     @Override
     public User saveUser(RegistrationRequestDTO requestDTO) {
         User user = User.builder()
