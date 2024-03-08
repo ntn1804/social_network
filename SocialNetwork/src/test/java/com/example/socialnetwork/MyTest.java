@@ -19,12 +19,6 @@ public class MyTest {
 
     @Test
     public void readResourceFile() throws IOException {
-//        String name = "file";
-//        String disposition = "form-data; name=\"" + name + "\"; filename=\"myFile.txt\"";
-//        StandardMultipartHttpServletRequest request = requestWithPart(name, disposition, "myBody");
-//        MultipartFile multipartFile = request.getFile(name);
-//        assertNotNull(multipartFile);
-
         Resource resource = resourceLoader.getResource("classpath:static/images/default-avatar.jpg");
         var image = resource.getInputStream();
         System.out.println(image);

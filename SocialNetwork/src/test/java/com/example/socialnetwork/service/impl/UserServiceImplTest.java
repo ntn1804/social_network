@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -69,7 +70,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void testRegisterUser_UniqueUser() {
+    void testRegisterUser_UniqueUser() throws IOException {
         // Given
         RegistrationRequestDTO requestDTO = new RegistrationRequestDTO(
                 "test@gmail.com",

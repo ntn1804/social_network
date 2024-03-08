@@ -20,6 +20,7 @@ public class Avatar {
     private String type;
     private String filePath;
     private int isDeleted;
+    private String note;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

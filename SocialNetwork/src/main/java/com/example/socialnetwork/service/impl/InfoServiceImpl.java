@@ -2,6 +2,7 @@ package com.example.socialnetwork.service.impl;
 
 import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.dto.request.UserInfoRequestDTO;
+import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.dto.response.UserInfoResponseDTO;
 import com.example.socialnetwork.entity.User;
 import com.example.socialnetwork.exception.GeneralException;

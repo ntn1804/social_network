@@ -1,31 +1,34 @@
 package com.example.socialnetwork.service.impl;
 
-import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.dto.request.ForgotPasswordRequestDTO;
 import com.example.socialnetwork.dto.request.RegistrationRequestDTO;
 import com.example.socialnetwork.dto.request.ResetPasswordDTO;
 import com.example.socialnetwork.dto.response.ForgotPasswordResponseDTO;
 import com.example.socialnetwork.dto.response.RegistrationResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
+import com.example.socialnetwork.entity.Avatar;
 import com.example.socialnetwork.entity.TokenResetPassword;
 import com.example.socialnetwork.entity.User;
 import com.example.socialnetwork.exception.GeneralException;
+import com.example.socialnetwork.repository.ImageRepository;
 import com.example.socialnetwork.repository.PasswordRepository;
 import com.example.socialnetwork.repository.UserRepository;
-import com.example.socialnetwork.service.ImageService;
 import com.example.socialnetwork.service.UserService;
+import com.example.socialnetwork.util.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.mock.web.MockMultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -38,28 +41,45 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
-    ResourceLoader resourceLoader;
+    private ImageRepository imageRepository;
 
-    public RegistrationResponseDTO registerUser(RegistrationRequestDTO requestDTO) {
+    public RegistrationResponseDTO registerUser(RegistrationRequestDTO requestDTO) throws IOException {
         User existingUser = userRepository.findByEmailOrUsername(requestDTO.getEmail(), requestDTO.getUsername());
 
         if (existingUser != null) {
             throw new GeneralException(HttpStatus.BAD_REQUEST, "Email or Username has been registered");
         }
 
-        var result = saveUser(requestDTO);
+        // Set default avatar
+        Path filePath = saveDefaultAvatar();
 
+        // Save user
+        User user = saveUser(requestDTO);
 
+        imageRepository.save(Avatar.builder()
+                .name(filePath.getFileName().toString())
+                .filePath(filePath.toFile().getPath())
+                .isDeleted(0)
+                .user(user)
+                .note("default avatar")
+                .build());
 
         return RegistrationResponseDTO.builder()
-                .email(result.getEmail())
-                .username(result.getUsername())
+                .email(user.getEmail())
+                .username(user.getUsername())
                 .build();
     }
 
-    public void saveDefaultAvatar() {
-        Resource imageResource = resourceLoader.getResource("classpath:static/images/default-avatar.jpg");
+    public Path saveDefaultAvatar() throws IOException {
+        Path path = Paths.get("src/main/resources/static/images/default-avatar.jpg");
+        String name = "default-avatar.jpg";
+        String originalFileName = "default-avatar.jpg";
+        String contentType = "image/jpeg";
+        byte[] content = Files.readAllBytes(path);
 
+        MultipartFile multipartFile = new MockMultipartFile(name, originalFileName, contentType, content);
+
+        return FileUtils.imageUploadUtil(multipartFile);
     }
 
 

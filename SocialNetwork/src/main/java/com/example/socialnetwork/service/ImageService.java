@@ -13,4 +13,6 @@ public interface ImageService {
     ResponseEntity<?> showMyAvatar() throws IOException;
 
     ResponseEntity<?> showOthersAvatar(Long userId) throws IOException;
+
+    Response deleteAvatar(Long avatarId);
 }

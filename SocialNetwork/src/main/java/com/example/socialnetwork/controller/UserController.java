@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
@@ -22,7 +24,7 @@ public class UserController {
 
     @PostMapping("/register")
     @Operation(summary = "Sign up for a new account.")
-    public ResponseEntity<RegistrationResponseDTO> registration(@Valid @RequestBody RegistrationRequestDTO requestDTO) {
+    public ResponseEntity<RegistrationResponseDTO> registration(@Valid @RequestBody RegistrationRequestDTO requestDTO) throws IOException {
         return ResponseEntity.ok(userService.registerUser(requestDTO));
     }
 

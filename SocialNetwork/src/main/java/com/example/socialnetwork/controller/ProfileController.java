@@ -60,4 +60,10 @@ public class ProfileController {
     public ResponseEntity<UserInfoResponseDTO> getMyInfo(){
         return ResponseEntity.ok(infoService.getMyInfo());
     }
+
+    @DeleteMapping("/avatar/{avatarId}")
+    @Operation(summary = "Delete my avatar.")
+    public Response deleteAvatar(@PathVariable("avatarId") Long avatarId) {
+        return imageService.deleteAvatar(avatarId);
+    }
 }
