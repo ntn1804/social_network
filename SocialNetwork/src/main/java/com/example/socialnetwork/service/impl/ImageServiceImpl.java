@@ -9,7 +9,6 @@ import com.example.socialnetwork.repository.ImageRepository;
 import com.example.socialnetwork.repository.UserRepository;
 import com.example.socialnetwork.service.ImageService;
 import com.example.socialnetwork.util.FileUtils;
-import io.jsonwebtoken.lang.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.InvalidMediaTypeException;
@@ -24,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 @Service
@@ -54,13 +54,15 @@ public class ImageServiceImpl implements ImageService {
         }
 
         // Save file to static folder
-        Path filePath = FileUtils.imageUploadUtil(multipartFile);
+        Path folderPath = Paths.get("src/main/resources/static/images/avatar");
+        Path filePath = FileUtils.imageUploadUtil(multipartFile, folderPath);
 
         imageRepository.save(Avatar.builder()
                 .name(filePath.getFileName().toString())
                 .type(multipartFile.getContentType())
                 .filePath(filePath.toFile().getPath())
                 .isDeleted(0)
+                .defaultAvatar(0)
                 .user(user)
                 .build());
 
@@ -120,7 +122,7 @@ public class ImageServiceImpl implements ImageService {
             throw new GeneralException(HttpStatus.BAD_REQUEST, "Not your avatar");
         }
 
-        if (avatar.getNote().equals("default avatar")) {
+        if (avatar.getDefaultAvatar() == 1) {
             throw new GeneralException(HttpStatus.BAD_REQUEST, "Can not delete default avatar");
         }
 

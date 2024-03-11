@@ -8,6 +8,7 @@ import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.*;
 import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.*;
+import com.example.socialnetwork.util.PostStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,7 +21,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -51,6 +51,7 @@ class PostServiceImplTest {
     void testCreatePost_EmptyPost() {
         MultipartFile[] files = null;
         PostRequestDTO requestDTO = null;
+        PostStatus postStatus = PostStatus.PUBLIC;
 
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
@@ -72,7 +73,7 @@ class PostServiceImplTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
 
         assertThrows(GeneralException.class, () -> {
-            postService.createPost(files, requestDTO);
+            postService.createPost(files, requestDTO, postStatus);
         });
     }
 
@@ -86,6 +87,7 @@ class PostServiceImplTest {
         )};
 
         PostRequestDTO requestDTO = new PostRequestDTO("test content");
+        PostStatus postStatus = PostStatus.PUBLIC;
 
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
@@ -107,7 +109,7 @@ class PostServiceImplTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
 
         assertThrows(GeneralException.class, () -> {
-            postService.createPost(files, requestDTO);
+            postService.createPost(files, requestDTO, postStatus);
         });
     }
 
@@ -121,6 +123,7 @@ class PostServiceImplTest {
         )};
 
         PostRequestDTO requestDTO = new PostRequestDTO("test content");
+        PostStatus postStatus = PostStatus.PUBLIC;
 
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
@@ -142,7 +145,7 @@ class PostServiceImplTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
 
         assertThrows(InvalidMediaTypeException.class, () -> {
-            postService.createPost(files, requestDTO);
+            postService.createPost(files, requestDTO, postStatus);
         });
     }
 
@@ -150,6 +153,7 @@ class PostServiceImplTest {
     void testCreatePost_FilesNull_RequestDTOEmpty() {
         MultipartFile[] files = null;
         PostRequestDTO requestDTO = new PostRequestDTO("");
+        PostStatus postStatus = PostStatus.PUBLIC;
 
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
@@ -171,7 +175,7 @@ class PostServiceImplTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
 
         assertThrows(GeneralException.class, () -> {
-            postService.createPost(files, requestDTO);
+            postService.createPost(files, requestDTO, postStatus);
         });
     }
 
@@ -185,6 +189,7 @@ class PostServiceImplTest {
         )};
 
         PostRequestDTO requestDTO = new PostRequestDTO("test content");
+        PostStatus postStatus = PostStatus.PUBLIC;
 
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
@@ -208,13 +213,13 @@ class PostServiceImplTest {
         Post post = Post.builder()
                 .user(user)
                 .text(requestDTO.getText())
-                .privacy("public")
+                .postStatus(PostStatus.PUBLIC)
                 .isDeleted(0)
                 .build();
 
         when(postRepository.save(any(Post.class))).thenReturn(post);
 
-        Response result = postService.createPost(files, requestDTO);
+        PostResponseDTO result = postService.createPost(files, requestDTO, postStatus);
         assertNotNull(result);
     }
 
@@ -228,6 +233,7 @@ class PostServiceImplTest {
         )};
 
         PostRequestDTO requestDTO = null;
+        PostStatus postStatus = PostStatus.PUBLIC;
 
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
@@ -250,13 +256,13 @@ class PostServiceImplTest {
 
         Post post = Post.builder()
                 .user(user)
-                .privacy("public")
+                .postStatus(PostStatus.PUBLIC)
                 .isDeleted(0)
                 .build();
 
         when(postRepository.save(any(Post.class))).thenReturn(post);
 
-        Response result = postService.createPost(files, requestDTO);
+        PostResponseDTO result = postService.createPost(files, requestDTO, postStatus);
         assertNotNull(result);
     }
 
@@ -265,6 +271,7 @@ class PostServiceImplTest {
         MultipartFile[] files = null;
 
         PostRequestDTO requestDTO = new PostRequestDTO("test content");
+        PostStatus postStatus = PostStatus.PUBLIC;
 
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
@@ -288,13 +295,13 @@ class PostServiceImplTest {
         Post post = Post.builder()
                 .user(user)
                 .text(requestDTO.getText())
-                .privacy("public")
+                .postStatus(PostStatus.PUBLIC)
                 .isDeleted(0)
                 .build();
 
         when(postRepository.save(any(Post.class))).thenReturn(post);
 
-        Response result = postService.createPost(files, requestDTO);
+        PostResponseDTO result = postService.createPost(files, requestDTO, postStatus);
         assertNotNull(result);
     }
 
@@ -417,7 +424,7 @@ class PostServiceImplTest {
                 (byte[]) null
         )};
         PostRequestDTO requestDTO = new PostRequestDTO("test content");
-        PostPrivacyDTO privacyDTO = new PostPrivacyDTO("public");
+        PostStatus postStatus = PostStatus.PUBLIC;
 
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
@@ -447,7 +454,7 @@ class PostServiceImplTest {
 
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
 
-        Response result = postService.editPost(post.getId(), files, requestDTO, privacyDTO);
+        Response result = postService.editPost(post.getId(), files, requestDTO, postStatus);
         assertNotNull(result);
     }
 
@@ -613,7 +620,7 @@ class PostServiceImplTest {
                 .id(1L)
                 .user(friend)
                 .isDeleted(0)
-                .privacy("friends")
+                .postStatus(PostStatus.FRIENDS)
                 .build();
 
         Optional<Post> optionalPost = Optional.of(post);
@@ -671,7 +678,7 @@ class PostServiceImplTest {
                 .id(1L)
                 .user(friend)
                 .isDeleted(0)
-                .privacy("only me")
+                .postStatus(PostStatus.PRIVATE)
                 .build();
 
         Optional<Post> optionalPost = Optional.of(post);
@@ -728,7 +735,7 @@ class PostServiceImplTest {
                 .id(1L)
                 .user(friend)
                 .isDeleted(0)
-                .privacy("public")
+                .postStatus(PostStatus.PUBLIC)
                 .build();
 
         Optional<Post> optionalPost = Optional.of(post);
@@ -797,7 +804,7 @@ class PostServiceImplTest {
                 .id(1L)
                 .user(friend)
                 .isDeleted(0)
-                .privacy("public")
+                .postStatus(PostStatus.PUBLIC)
                 .build();
 
         Optional<Post> optionalPost = Optional.of(post);
@@ -840,7 +847,7 @@ class PostServiceImplTest {
                 .id(1L)
                 .user(user)
                 .isDeleted(0)
-                .privacy("public")
+                .postStatus(PostStatus.PUBLIC)
                 .build();
 
         Optional<Post> optionalPost = Optional.of(post);

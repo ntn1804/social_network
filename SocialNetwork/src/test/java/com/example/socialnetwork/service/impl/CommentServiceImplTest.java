@@ -13,6 +13,7 @@ import com.example.socialnetwork.repository.CommentRepository;
 import com.example.socialnetwork.repository.FriendRepository;
 import com.example.socialnetwork.repository.PostRepository;
 import com.example.socialnetwork.repository.UserRepository;
+import com.example.socialnetwork.util.PostStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -85,7 +86,7 @@ class CommentServiceImplTest {
                 .id(1L)
                 .user(friend)
                 .isDeleted(1)
-                .privacy("public")
+                .postStatus(PostStatus.PUBLIC)
                 .build();
 
         Optional<Post> optionalPost = Optional.of(post);
@@ -139,7 +140,7 @@ class CommentServiceImplTest {
                 .id(1L)
                 .user(friend)
                 .isDeleted(0)
-                .privacy("only me")
+                .postStatus(PostStatus.PRIVATE)
                 .build();
 
         Optional<Post> optionalPost = Optional.of(post);
@@ -193,7 +194,7 @@ class CommentServiceImplTest {
                 .id(1L)
                 .user(user2)
                 .isDeleted(0)
-                .privacy("public")
+                .postStatus(PostStatus.PUBLIC)
                 .build();
         Optional<Post> optionalPost = Optional.of(post);
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
@@ -248,7 +249,7 @@ class CommentServiceImplTest {
                 .id(1L)
                 .user(user2)
                 .isDeleted(0)
-                .privacy("public")
+                .postStatus(PostStatus.PUBLIC)
                 .build();
         Optional<Post> optionalPost = Optional.of(post);
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);

@@ -11,6 +11,7 @@ import com.example.socialnetwork.repository.FriendRepository;
 import com.example.socialnetwork.repository.PostRepository;
 import com.example.socialnetwork.repository.ReactRepository;
 import com.example.socialnetwork.repository.UserRepository;
+import com.example.socialnetwork.util.PostStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,7 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.Date;
@@ -72,7 +72,7 @@ class ReactServiceImplTest {
         Post post = Post.builder()
                 .id(1L)
                 .isDeleted(1)
-                .privacy("public")
+                .postStatus(PostStatus.PUBLIC)
                 .build();
         Optional<Post> optionalPost = Optional.of(post);
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
@@ -113,7 +113,7 @@ class ReactServiceImplTest {
                 .id(1L)
                 .isDeleted(0)
                 .user(user)
-                .privacy("only me")
+                .postStatus(PostStatus.PRIVATE)
                 .build();
         Optional<Post> optionalPost = Optional.of(post);
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
@@ -156,7 +156,7 @@ class ReactServiceImplTest {
                 .id(1L)
                 .isDeleted(0)
                 .user(user)
-                .privacy("only me")
+                .postStatus(PostStatus.PRIVATE)
                 .build();
         Optional<Post> optionalPost = Optional.of(post);
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
@@ -198,7 +198,7 @@ class ReactServiceImplTest {
                 .id(1L)
                 .user(User.builder().id(2L).build())
                 .isDeleted(0)
-                .privacy("only me")
+                .postStatus(PostStatus.PRIVATE)
                 .build();
         Optional<Post> optionalPost = Optional.of(post);
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
@@ -250,7 +250,7 @@ class ReactServiceImplTest {
                 .id(1L)
                 .user(user2)
                 .isDeleted(0)
-                .privacy("friends")
+                .postStatus(PostStatus.FRIENDS)
                 .build();
         Optional<Post> optionalPost = Optional.of(post);
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
@@ -305,7 +305,7 @@ class ReactServiceImplTest {
                 .id(1L)
                 .user(user2)
                 .isDeleted(0)
-                .privacy("public")
+                .postStatus(PostStatus.PUBLIC)
                 .build();
         Optional<Post> optionalPost = Optional.of(post);
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);
@@ -359,7 +359,7 @@ class ReactServiceImplTest {
                 .id(1L)
                 .user(user2)
                 .isDeleted(0)
-                .privacy("friends")
+                .postStatus(PostStatus.FRIENDS)
                 .build();
         Optional<Post> optionalPost = Optional.of(post);
         when(postRepository.findById(post.getId())).thenReturn(optionalPost);

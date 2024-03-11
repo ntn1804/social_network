@@ -17,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -59,7 +58,7 @@ public class ReactServiceImpl implements ReactService {
 
         // post khong phai cua minh
         if (!post.getUser().getId().equals(user.getId())) {
-            if (post.getPrivacy().equals("only me")) {
+            if (post.getPostStatus().equals("only me")) {
                 throw new GeneralException(HttpStatus.NOT_FOUND, "Post not found");
             }
 
@@ -67,7 +66,7 @@ public class ReactServiceImpl implements ReactService {
             Friend friend = friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), post.getUser().getId());
             if (friend == null) {
                 // post privacy
-                if (!post.getPrivacy().equals("public")) {
+                if (!post.getPostStatus().equals("public")) {
                     throw new GeneralException(HttpStatus.NOT_FOUND, "Post not found");
                 }
                 createReactPost(postId, response, user, post);

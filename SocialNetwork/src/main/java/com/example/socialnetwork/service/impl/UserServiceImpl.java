@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
                 .filePath(filePath.toFile().getPath())
                 .isDeleted(0)
                 .user(user)
-                .note("default avatar")
+                .defaultAvatar(1)
                 .build());
 
         return RegistrationResponseDTO.builder()
@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public Path saveDefaultAvatar() throws IOException {
-        Path path = Paths.get("src/main/resources/static/images/default-avatar.jpg");
+        Path path = Paths.get("src/main/resources/static/images/avatar/default-avatar.jpg");
         String name = "default-avatar.jpg";
         String originalFileName = "default-avatar.jpg";
         String contentType = "image/jpeg";
@@ -79,7 +79,8 @@ public class UserServiceImpl implements UserService {
 
         MultipartFile multipartFile = new MockMultipartFile(name, originalFileName, contentType, content);
 
-        return FileUtils.imageUploadUtil(multipartFile);
+        Path folderPath = Paths.get("src/main/resources/static/images/avatar");
+        return FileUtils.imageUploadUtil(multipartFile, folderPath);
     }
 
 

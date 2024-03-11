@@ -2,6 +2,7 @@ package com.example.socialnetwork.advice;
 
 import com.example.socialnetwork.exception.GeneralException;
 import io.jsonwebtoken.security.SignatureException;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -40,12 +42,6 @@ public class ControllerExceptionHandler {
         return "error: expected format dd/MM/yyyy";
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MultipartException.class)
-    public String handleMultipartException() {
-        return "error: please choose a file";
-    }
-
     //chua bat dc invalid token
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(SignatureException.class)
@@ -57,5 +53,11 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(InvalidMediaTypeException.class)
     public String handleInvalidMediaTypeException(InvalidMediaTypeException exception) {
         return exception.getMessage();
+    }
+
+    @ExceptionHandler(ConversionFailedException.class)
+    public ResponseEntity<String> handleInvalidPostStatus() {
+        return new ResponseEntity<>("Invalid post status. Please choose: 1. PUBLIC, 2. FRIENDS, 3. PRIVATE",
+                HttpStatus.BAD_REQUEST);
     }
 }

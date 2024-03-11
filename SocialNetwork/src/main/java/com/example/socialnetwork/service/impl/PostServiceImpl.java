@@ -10,7 +10,8 @@ import com.example.socialnetwork.entity.*;
 import com.example.socialnetwork.exception.GeneralException;
 import com.example.socialnetwork.repository.*;
 import com.example.socialnetwork.service.PostService;
-import org.apache.tika.Tika;
+import com.example.socialnetwork.util.FileUtils;
+import com.example.socialnetwork.util.PostStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,11 +23,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -44,11 +47,10 @@ public class PostServiceImpl implements PostService {
     @Autowired
     private ReactRepository reactRepository;
 
-    private final static String companyFolder = "C:\\Users\\nguyentrungnghia\\Desktop\\MyFiles\\Post\\";
-    private final static String homeFolder = "C:\\Users\\MY PC\\Desktop\\Works\\MyFiles\\";
-
     @Override
-    public Response createPost(MultipartFile[] files, PostRequestDTO requestDTO) {
+    public PostResponseDTO createPost(MultipartFile[] files, PostRequestDTO requestDTO, PostStatus postStatus) {
+        PostResponseDTO postResponseDTO = new PostResponseDTO();
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
@@ -67,19 +69,22 @@ public class PostServiceImpl implements PostService {
                 post = Post.builder()
                         .user(user)
                         .text(requestDTO.getText())
-                        .privacy("public")
+                        .postStatus(postStatus)
                         .isDeleted(0)
                         .build();
 
             } else {
                 post = Post.builder()
                         .user(user)
-                        .privacy("public")
+                        .postStatus(postStatus)
                         .isDeleted(0)
                         .build();
             }
             postRepository.save(post);
             savePostImage(files, post);
+
+            // mapping postResponseDTO
+            postResponseDTO = getPostResponseDTO(post);
         }
 
         if (files == null) {
@@ -89,41 +94,39 @@ public class PostServiceImpl implements PostService {
             Post post = Post.builder()
                     .user(user)
                     .text(requestDTO.getText())
-                    .privacy("public")
+                    .postStatus(postStatus)
                     .isDeleted(0)
                     .build();
             postRepository.save(post);
+
+            // mapping postResponseDTO
+            postResponseDTO = getPostResponseDTO(post);
         }
-        return Response.builder()
-                .responseMessage("Created post successfully")
-                .build();
+        return postResponseDTO;
     }
 
-    private void savePostImage(MultipartFile[] files, Post post) {
+    private void savePostImage(MultipartFile[] multipartFiles, Post post) {
         List<PostImage> postImageList = new ArrayList<>();
-        Arrays.stream(files).forEach(file -> {
-            UUID uuid = UUID.randomUUID();
-            String fileName = uuid.toString();
-
+        Path folderPath = Paths.get("src/main/resources/static/images/post");
+        Arrays.stream(multipartFiles).forEach(multipartFile -> {
             try {
-                Files.copy(file.getInputStream(), Path.of(companyFolder + fileName + ".jpg"));
+                Path filePath = FileUtils.imageUploadUtil(multipartFile, folderPath);
+                PostImage postImage = PostImage.builder()
+                        .filePath(filePath.toFile().getPath())
+                        .fileName(filePath.toFile().getName())
+                        .isDeleted(0)
+                        .post(post)
+                        .build();
+                postImageList.add(postImage);
             } catch (IOException e) {
                 throw new GeneralException(HttpStatus.BAD_REQUEST, "Error creating post");
             }
-
-            PostImage postImage = PostImage.builder()
-                    .filePath(companyFolder + fileName)
-                    .fileName(fileName)
-                    .isDeleted(0)
-                    .post(post)
-                    .build();
-            postImageList.add(postImage);
         });
         postImageRepository.saveAll(postImageList);
     }
 
     @Override
-    public Response editPost(Long postId, MultipartFile[] files, PostRequestDTO requestDTO, PostPrivacyDTO privacyDTO) {
+    public Response editPost(Long postId, MultipartFile[] files, PostRequestDTO requestDTO, PostStatus postStatus) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserInfoUserDetails userDetails = (UserInfoUserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
@@ -146,7 +149,7 @@ public class PostServiceImpl implements PostService {
         }
 
         // check files = null & content = null.
-        if (files == null && requestDTO == null && privacyDTO == null) {
+        if (files == null && requestDTO == null) {
             throw new GeneralException(HttpStatus.BAD_REQUEST, "Post is empty");
         }
 
@@ -170,10 +173,8 @@ public class PostServiceImpl implements PostService {
             post.setText(null);
         }
 
-        // check post privacy change
-        if (privacyDTO != null) {
-            post.setPrivacy(privacyDTO.getPrivacy());
-        }
+        // save post status change
+        post.setPostStatus(postStatus);
 
         postRepository.save(post);
 
@@ -182,14 +183,14 @@ public class PostServiceImpl implements PostService {
                 .build();
     }
 
-    private void checkFileType(MultipartFile[] files) {
-        Arrays.stream(files).forEach(file -> {
-            if (file.getContentType() == null) {
+    private void checkFileType(MultipartFile[] multipartFiles) {
+        Arrays.stream(multipartFiles).forEach(multipartFile -> {
+            if (multipartFile.getContentType() == null) {
                 throw new GeneralException(HttpStatus.BAD_REQUEST, "please choose file(s)");
             }
-            MediaType mediaType = MediaType.parseMediaType(file.getContentType());
+            MediaType mediaType = MediaType.parseMediaType(multipartFile.getContentType());
             if (!mediaType.getType().equals("image")) {
-                throw new InvalidMediaTypeException(file.getContentType(), "please choose image file(s)");
+                throw new InvalidMediaTypeException(multipartFile.getContentType(), "please choose image file(s)");
             }
         });
     }
@@ -224,7 +225,7 @@ public class PostServiceImpl implements PostService {
                     .postId(post.getId())
                     .username(post.getUser().getUsername())
                     .postContent(post.getText())
-                    .postImageDTOList(postImageDTOList)
+                    .postImages(postImageDTOList)
                     .build();
             postResponseDTOList.add(postResponseDTO);
         }
@@ -269,32 +270,33 @@ public class PostServiceImpl implements PostService {
 
         if (!user.getId().equals(friendId)) {
             Friend friend = friendRepository.findAcceptedFriendByUserIdAndFriendId(user.getId(), friendId);
-            if (friend == null && !post.getPrivacy().equals("public")) {
+            if (friend == null && !post.getPostStatus().equals(PostStatus.PUBLIC)) {
                 throw new GeneralException(HttpStatus.BAD_REQUEST, "You are not friends");
             }
-            if (post.getPrivacy().equals("only me")) {
+            if (post.getPostStatus() == PostStatus.PRIVATE) {
                 throw new GeneralException(HttpStatus.NOT_FOUND, "Post not found");
             }
         }
 
-        return getPostResponseDTO(postId, post);
+        return getPostResponseDTO(post);
     }
 
-    private PostResponseDTO getPostResponseDTO(Long postId, Post post) {
-        List<PostImage> postImageList = postImageRepository.findAllByPostId(postId);
+    private PostResponseDTO getPostResponseDTO(Post post) {
+        List<PostImage> postImageList = postImageRepository.findAllByPostId(post.getId());
         List<PostImageDTO> postImageDTOList = new ArrayList<>();
 
         for (PostImage postImage : postImageList) {
             postImageDTOList.add(PostImageDTO.builder()
-                    .filePath(postImage.getFilePath() + ".jpg")
+                    .filePath(postImage.getFilePath())
                     .build());
         }
 
         return PostResponseDTO.builder()
-                .postId(postId)
+                .postId(post.getId())
                 .username(post.getUser().getUsername())
+                .postStatus(post.getPostStatus())
                 .postContent(post.getText())
-                .postImageDTOList(postImageDTOList)
+                .postImages(postImageDTOList)
                 .build();
     }
 
@@ -371,7 +373,7 @@ public class PostServiceImpl implements PostService {
                     .postId(post.getId())
                     .username(user.getUsername())
                     .postContent(post.getText())
-                    .postImageDTOList(postImageDTO)
+                    .postImages(postImageDTO)
                     .build();
             postResponseDTOList.add(postResponseDTO);
         }

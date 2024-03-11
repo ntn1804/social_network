@@ -4,7 +4,6 @@ import com.example.socialnetwork.config.UserInfoUserDetails;
 import com.example.socialnetwork.dto.request.CommentRequestDTO;
 import com.example.socialnetwork.dto.response.CommentResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
-import com.example.socialnetwork.dto.response.UserDTO;
 import com.example.socialnetwork.entity.Comment;
 import com.example.socialnetwork.entity.Friend;
 import com.example.socialnetwork.entity.Post;
@@ -22,10 +21,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,7 +56,7 @@ public class CommentServiceImpl implements CommentService {
             throw new GeneralException(HttpStatus.NOT_FOUND, "Post is deleted");
         }
 
-        if (post.getPrivacy().equals("only me")) {
+        if (post.getPostStatus().equals("only me")) {
             throw new GeneralException(HttpStatus.NOT_FOUND, "Post not found");
         }
 

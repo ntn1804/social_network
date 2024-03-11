@@ -6,10 +6,12 @@ import com.example.socialnetwork.dto.response.PostResponseDTO;
 import com.example.socialnetwork.dto.response.Response;
 import com.example.socialnetwork.entity.Post;
 import com.example.socialnetwork.service.PostService;
+import com.example.socialnetwork.util.PostStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,9 +29,11 @@ public class PostController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Create a post.")
-    public ResponseEntity<Response> createPost(@RequestPart(value = "image", required = false) MultipartFile[] files,
-                                               @RequestParam(value = "text", required = false) PostRequestDTO requestDTO ) throws IOException {
-        return ResponseEntity.ok(postService.createPost(files, requestDTO));
+    @ResponseStatus(HttpStatus.CREATED)
+    public PostResponseDTO createPost(@RequestPart(value = "image", required = false) MultipartFile[] files,
+                                      @RequestParam(value = "text", required = false) PostRequestDTO requestDTO,
+                                      @RequestParam("postStatus") PostStatus postStatus) throws IOException {
+        return postService.createPost(files, requestDTO, postStatus);
     }
 
     @PutMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -37,8 +41,8 @@ public class PostController {
     public ResponseEntity<Response> editPost(@PathVariable("postId") Long postId,
                                              @RequestPart(value = "image", required = false) MultipartFile[] files,
                                              @RequestParam(value = "text", required = false) PostRequestDTO requestDTO,
-                                              @RequestParam(value = "privacy", required = false) PostPrivacyDTO privacyDTO) {
-        return ResponseEntity.ok(postService.editPost(postId, files, requestDTO, privacyDTO));
+                                             @RequestParam("postStatus") PostStatus postStatus) {
+        return ResponseEntity.ok(postService.editPost(postId, files, requestDTO, postStatus));
     }
 
     @GetMapping("/{postId}")
